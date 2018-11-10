@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_bd"
+            android:checkable="false"
+            android:icon="@drawable/ic_storage_black_24dp"
+            android:title="@string/base_de_datos_local" />
+
+        <item
+            android:id="@+id/nav_alert"
+            android:checkable="false"
+            android:icon="@drawable/ic_add_alert_black_24dp"
+            android:title="@string/env_o_de_alertas" />
+
+        <item
+            android:id="@+id/nav_perfil"
+            android:checkable="false"
+            android:icon="@drawable/ic_person_black_24dp"
+            android:title="@string/perfil" />
+
+        <item
+            android:id="@+id/nav_salir"
+            android:checkable="false"
+            android:icon="@drawable/ic_exit_to_app_black_24dp"
+            android:title="@string/salir" />
+    </group>
+
+</menu>

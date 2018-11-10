@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_marginTop="?attr/actionBarSize"
+    tools:context=".activity.AlertaConfigActivity"
+    tools:showIn="@layout/activity_alerta_config">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="20sp"
+        android:layout_marginBottom="20sp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:layout_marginBottom="6sp"
+            android:text="@string/listado_de_emails_para_envio_de_alerta"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20sp"
+            android:text="@string/nota_separe_por_coma_los_emails_de_la_lista"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nivel_de_alerta_1"/>
+
+        <EditText
+            android:id="@+id/niveldealerta1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12sp"
+            android:layout_marginLeft="16sp"
+            android:layout_marginRight="16sp"
+            android:text=""
+            android:digits="pyfgchlaoeuidrtnsqjkxbmwvzPYFGCHLAOEUIDRTNSQJKXBMWVZ0123456789._-@,"
+            tools:ignore="Autofill,LabelFor,TextFields" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nivel_de_alerta_2"/>
+
+        <EditText
+            android:id="@+id/niveldealerta2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12sp"
+            android:layout_marginLeft="16sp"
+            android:layout_marginRight="16sp"
+            android:text=""
+            android:digits="pyfgchlaoeuidrtnsqjkxbmwvzPYFGCHLAOEUIDRTNSQJKXBMWVZ0123456789._-@,"
+            tools:ignore="Autofill,LabelFor,TextFields" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nivel_de_alerta_3"/>
+
+        <EditText
+            android:id="@+id/niveldealerta3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12sp"
+            android:layout_marginLeft="16sp"
+            android:layout_marginRight="16sp"
+            android:text=""
+            android:digits="pyfgchlaoeuidrtnsqjkxbmwvzPYFGCHLAOEUIDRTNSQJKXBMWVZ0123456789._-@,"
+            tools:ignore="Autofill,LabelFor,TextFields" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="#efefefef"
+            android:paddingLeft="16sp"
+            android:paddingRight="16sp"
+            android:onClick="onClick"
+            android:text="@string/guardar_cambios"/>
+
+    </LinearLayout>
+
+</ScrollView>
