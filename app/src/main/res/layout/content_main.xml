@@ -17,7 +17,7 @@
     <LinearLayout
         android:id="@+id/mainElem"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <LinearLayout
@@ -30,11 +30,13 @@
                 android:id="@+id/semaforo_estado"
                 android:layout_width="45sp"
                 android:layout_height="45sp"
+                android:layout_marginBottom="5dp"
                 android:src="@drawable/rojo"
                 android:contentDescription="@string/semaforo" />
 
             <LinearLayout
                 android:layout_width="match_parent"
+                android:layout_marginBottom="5dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
@@ -55,6 +57,38 @@
             </LinearLayout>
 
         </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2sp"
+            android:background="#777777"
+            tools:ignore="SmallSp" />
+
+        <ProgressBar
+            android:id="@+id/mainFormPreload"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <android.support.v4.widget.NestedScrollView
+            android:id="@+id/mainFormList"
+            android:background="#eeeeee"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
+            <android.support.v7.widget.RecyclerView
+                android:background="#eeeeee"
+                android:id="@+id/mainFormListView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            </android.support.v7.widget.RecyclerView>
+        </android.support.v4.widget.NestedScrollView>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2sp"
+            android:background="#777777"
+            tools:ignore="SmallSp" />
 
     </LinearLayout>
 

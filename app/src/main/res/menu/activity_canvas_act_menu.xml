@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu-save"
+        android:icon="@drawable/menu_ic_save_black_24dp"
+        android:title="@string/guardar"
+        app:showAsAction="ifRoom" />
+
+
+    <item
+        android:id="@+id/menu-delete"
+        android:icon="@drawable/menu_ic_delete_black_24dp"
+        android:title="@string/borrar"
+        app:showAsAction="ifRoom" />
+
+</menu>

@@ -37,4 +37,9 @@
     <string name="perfil">Perfil</string>
     <string name="title_activity_config">ConfigActivity</string>
     <string name="ingrese_contrase_a_actual">Ingrese Contraseña Actual</string>
+    <string name="formulario">Formulario</string>
+    <string name="title_activity_formulario_fill">FormularioFillActivity</string>
+    <string name="title_activity_canvas">ActivityCanvas</string>
+    <string name="guardar">Guardar</string>
+    <string name="borrar">Borrar</string>
 </resources>

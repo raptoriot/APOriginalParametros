@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
+import android.util.DisplayMetrics;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.google.android.gms.common.util.IOUtils;
@@ -73,6 +75,13 @@ public class Util {
         Date ahora = new Date();
         @SuppressLint("SimpleDateFormat") SimpleDateFormat formateador = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formateador.format(ahora);
+    }
+
+    public static String getFechaCustom(String format){
+        String formato = format;
+        Date momento = new Date(System.currentTimeMillis());
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat formateador = new SimpleDateFormat(formato);
+        return formateador.format(momento);
     }
 
     public static String getSha512(String toHash) {
@@ -258,7 +267,8 @@ public class Util {
         try {
             if(rawbase64img != null && !rawbase64img.equalsIgnoreCase("null")
                     && rawbase64img.length() > 24) { // data:image/jpeg;base64,
-                byte[] chartData = Base64.decode(removeBase64ImgWebHeader(rawbase64img), Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
+                byte[] chartData = Base64.decode(removeBase64ImgWebHeader(rawbase64img),
+                        Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
                 final Bitmap bm = BitmapFactory.decodeByteArray(chartData, 0, chartData.length);
                 act.runOnUiThread(new Runnable() {
                     @Override
@@ -288,6 +298,43 @@ public class Util {
         } finally {
             IOUtils.closeQuietly(out);
             IOUtils.closeQuietly(in);
+        }
+        return ret;
+    }
+
+    public static int safeGetMatchedScreenSizeLayoutWidth(View parent, Activity act, int margin)
+    {
+        if(parent != null && parent.getWidth() > 0)
+        {
+            return parent.getWidth();
+        }
+        else if(act != null)
+        {
+            DisplayMetrics metrics = new DisplayMetrics();
+            act.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            return metrics.widthPixels - margin;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public static String leftZeros(int num,int minlen)
+    {
+        boolean negative = (num < 0);
+        String ret = ""+num;
+        if(negative)
+        {
+            ret = ret.replace("-","");
+        }
+        while(ret.length() < minlen)
+        {
+            ret = "0" + num;
+        }
+        if(negative)
+        {
+            ret = "-" + ret;
         }
         return ret;
     }

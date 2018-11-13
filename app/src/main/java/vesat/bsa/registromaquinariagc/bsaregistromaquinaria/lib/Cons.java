@@ -17,7 +17,10 @@ public class Cons {
     public final static String Current_Database_Location = "Current_Database_Location";
     public static final String Database_Name = "DatosRegistroMaquinaria.db";
 
-    public static final String Camera_Cache = "Camera_Cache";
-    public static final String Camera_Cache_Available = "Camera_Cache_Available";
+    public final static String CAMERA_CacheCurrentID = "CAMERA_CacheCurrentID";
+    public final static String CAMERA_PictureTaked = "CAMERA_PictureTaked";
+    public final static String CAMERA_PictureLoadID = "CAMERA_PictureLoadID";
+    public final static String CAMERA_PictureLoad = "CAMERA_PictureLoad";
+    public final static String CAMERA_FormFieldViewHolderPrefix = "CAMERA_FormFieldViewHolder_";
 
 }

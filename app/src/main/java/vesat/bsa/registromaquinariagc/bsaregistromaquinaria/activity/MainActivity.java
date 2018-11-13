@@ -12,12 +12,15 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,9 +29,11 @@ import java.util.ArrayList;
 
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.R;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.API;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioList;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Cons;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.SyncService;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Util;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.Formulario;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -45,6 +50,9 @@ public class MainActivity extends AppCompatActivity
     protected static boolean dialog_moving_db = false;
     private String dialog_cur_path = null;
     private int dialog_checked_item = -1;
+
+    protected AdapterFormularioList adapterFormularioList = null;
+    private ArrayList<Formulario> arrFormulario = new ArrayList<>();
 
     private void loadVars()
     {
@@ -173,6 +181,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
         thread_timer.start();
+        loadFormularios();
     }
 
     protected void onPause()
@@ -348,4 +357,67 @@ public class MainActivity extends AppCompatActivity
                     Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void loadFormularios()
+    {
+        findViewById(R.id.mainFormPreload).setVisibility(View.VISIBLE);
+        Thread net = new Thread(new Runnable()
+        {
+            @Override
+            public void run() {
+                try {
+                    if (adapterFormularioList != null) {
+                        arrFormulario.clear();
+                    }
+                    String ans_raw = API.readWs(API.GET_FORMULARIOS_LIST,user_id,user_pass,device_register_id,
+                                device_id,null);
+                    if(ans_raw != null && ans_raw.length() > 0) {
+                        JSONObject ans = new JSONObject(ans_raw);
+                        String status = Util.getJSONStringOrNull(ans, "status");
+                        device_register_id = Util.getJSONStringOrNull(ans, "device_reg_id");
+                        if (status != null && status.contentEquals("ok") && ans.has("formularios"))
+                        {
+                            JSONArray jformularios = ans.getJSONArray("formularios");
+                            for(int x = 0;x < jformularios.length();x++)
+                            {
+                                JSONObject jform = jformularios.getJSONObject(x);
+                                Formulario f = new Formulario();
+                                f.loadFromJSON(jform);
+                                arrFormulario.add(f);
+                            }
+                        }
+                    }
+                    try {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(adapterFormularioList == null) {
+                                    adapterFormularioList = new AdapterFormularioList(getApplicationContext(), arrFormulario);
+                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setNestedScrollingEnabled(false);
+                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setAdapter(adapterFormularioList);
+                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setLayoutManager(
+                                            new LinearLayoutManager(getApplicationContext()));
+                                }
+                                adapterFormularioList.notifyDataSetChanged();
+                            }
+                        });
+                    } catch (NullPointerException ignored) {
+                    }
+                } catch (JSONException e) {
+
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            findViewById(R.id.mainFormPreload).setVisibility(View.GONE);
+                        }
+                        catch (NullPointerException e){e.printStackTrace();}
+                    }
+                });
+            }
+        });
+        net.start();
+    }
+
 }
