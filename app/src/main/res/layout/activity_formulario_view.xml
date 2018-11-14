@@ -5,10 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_marginTop="?attr/actionBarSize"
     android:focusableInTouchMode="true"
     android:descendantFocusability="beforeDescendants"
-    tools:context=".activity.FormularioFillActivity">
+    tools:context=".activity.FormularioViewActivity">
 
     <ProgressBar
         android:id="@+id/auxProgressBar"
@@ -41,27 +40,5 @@
             android:id="@+id/variableContentLayout"/>
 
     </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/navigationMenu"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:orientation="horizontal"
-        android:background="#ed8a34"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent">
-
-        <ImageView
-            android:id="@+id/btnAlerta"
-            android:padding="10dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onClick"
-            android:visibility="visible"
-            app:srcCompat="@drawable/ic_alerta_send_form"/>
-
-    </LinearLayout>
 
 </LinearLayout>

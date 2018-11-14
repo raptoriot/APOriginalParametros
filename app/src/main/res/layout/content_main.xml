@@ -16,8 +16,9 @@
 
     <LinearLayout
         android:id="@+id/mainElem"
+        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -73,9 +74,8 @@
         <android.support.v4.widget.NestedScrollView
             android:id="@+id/mainFormList"
             android:background="#eeeeee"
-            android:layout_weight="1"
             android:layout_width="match_parent"
-            android:layout_height="0dp">
+            android:layout_height="match_parent">
             <android.support.v7.widget.RecyclerView
                 android:background="#eeeeee"
                 android:id="@+id/mainFormListView"
@@ -89,6 +89,25 @@
             android:layout_height="2sp"
             android:background="#777777"
             tools:ignore="SmallSp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/sync_layout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="40sp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="#ffd999">
+        <TextView
+            android:id="@+id/sync_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10sp"
+            android:layout_marginBottom="10sp"
+            android:textStyle="bold"
+            android:text="@string/pendiente_env_o_de_datos"/>
 
     </LinearLayout>
 

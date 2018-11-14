@@ -17,6 +17,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,16 +39,21 @@ import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.Formulario;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    protected static MainActivity self = null;
+
     private String device_id;
     private String device_register_id;
     private String user_id;
     private String user_pass;
     private String user_email;
     private String user_name;
+    private String current_database_location;
 
     private Thread thread_timer = null;
-    protected static boolean sync_flag = false;
-    protected static boolean dialog_moving_db = false;
+    private Thread thread_online = null;
+    public static boolean sync_flag = false;
+    public static boolean dialog_moving_db = false;
+    public static boolean status_online = false;
     private String dialog_cur_path = null;
     private int dialog_checked_item = -1;
 
@@ -62,6 +68,7 @@ public class MainActivity extends AppCompatActivity
         user_pass = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Pass);
         user_email = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Email);
         user_name = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Name);
+        current_database_location = ((String) Util.loadFromSP(getApplicationContext(),String.class,Cons.Current_Database_Location));
     }
 
     @Override
@@ -69,6 +76,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         loadVars();
+        if(current_database_location == null)
+        {
+            selectDBLocation(true,this);
+        }
         if (device_id == null || device_register_id == null) {
             ((findViewById(R.id.mainElem))).setVisibility(View.GONE);
             ((findViewById(R.id.mainPreload))).setVisibility(View.VISIBLE);
@@ -150,18 +161,21 @@ public class MainActivity extends AppCompatActivity
             ((TextView) navigationView.getHeaderView(0).findViewById(R.id.navUserEmail)).setText(user_email);
         }
         ((TextView) findViewById(R.id.current_user)).setText(user_email);
-        String current_database_location = ((String) Util.loadFromSP(
-                getApplicationContext(),String.class,Cons.Current_Database_Location));
-        if(current_database_location == null)
-        {
-            selectDBLocation();
-        }
+
+    }
+
+    public void onDestroy()
+    {
+        self = null;
+        super.onDestroy();
     }
 
     protected void onResume()
     {
         super.onResume();
+        self = this;
         loadVars();
+        startService(new Intent(this,SyncService.class));
         thread_timer = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -181,6 +195,47 @@ public class MainActivity extends AppCompatActivity
             }
         });
         thread_timer.start();
+        if(thread_online == null)
+        {
+            thread_online = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        while(true) {
+                            boolean pass = false;
+                            String ans_raw = API.readWs(API.PING, "0","0","0","0",null);
+                            if(ans_raw != null && ans_raw.length() > 0)
+                            {
+                                try {
+                                    JSONObject ans = new JSONObject(ans_raw);
+                                    String status = Util.getJSONStringOrNull(ans, "status");
+                                    if (status != null && status.contentEquals("ok")) {
+                                        pass = true;
+                                    }
+                                }
+                                catch (JSONException ignored){}
+                            }
+                            status_online = pass;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(status_online) {
+                                        ((ImageView) findViewById(R.id.semaforo_estado)).setImageResource(R.drawable.verde);
+                                    }
+                                    else
+                                    {
+                                        ((ImageView) findViewById(R.id.semaforo_estado)).setImageResource(R.drawable.rojo);
+                                    }
+                                }
+                            });
+                            Thread.sleep(5000);
+                        }
+                    }
+                    catch (InterruptedException ignored){}
+                }
+            });
+            thread_online.start();
+        }
         loadFormularios();
     }
 
@@ -190,6 +245,11 @@ public class MainActivity extends AppCompatActivity
         {
             thread_timer.interrupt();
             thread_timer = null;
+        }
+        if(thread_online != null)
+        {
+            thread_online.interrupt();
+            thread_online = null;
         }
         super.onPause();
     }
@@ -211,7 +271,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_bd) {
-            selectDBLocation();
+            selectDBLocation(false,this);
         } else if (id == R.id.nav_alert) {
             Intent act = new Intent(this,AlertaConfigActivity.class);
             startActivity(act);
@@ -241,7 +301,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void selectDBLocation()
+    private void selectDBLocation(final boolean appStarted,final MainActivity act)
     {
         if(!sync_flag && !dialog_moving_db) {
             final ArrayList<String> paths = Util.getFilesDirList(getApplicationContext());
@@ -265,6 +325,7 @@ public class MainActivity extends AppCompatActivity
                             + " [" + Util.formatSize(totalBlocks * blockSize) + "]";
                 }
                 if (dialog_checked_item == -1) {
+                    current_database_location = paths.get(0);
                     Util.saveToSP(getApplicationContext(), paths.get(0), Cons.Current_Database_Location);
                     dialog_checked_item = 0;
                 }
@@ -277,6 +338,10 @@ public class MainActivity extends AppCompatActivity
                 adb.setNegativeButton("Salir", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        if(appStarted)
+                        {
+                            act.recreate();
+                        }
                         dialog.dismiss();
                     }
                 });
@@ -329,8 +394,13 @@ public class MainActivity extends AppCompatActivity
                                 Toast.makeText(getApplicationContext(),
                                         "Base de Datos Movida.", Toast.LENGTH_SHORT).show();
                             }
+                            current_database_location = paths.get(dialog_checked_item);
                             Util.saveToSP(getApplicationContext(), paths.get(dialog_checked_item), Cons.Current_Database_Location);
                             dialog_moving_db = false;
+                        }
+                        if(appStarted)
+                        {
+                            act.recreate();
                         }
                     }
                 });
@@ -361,6 +431,7 @@ public class MainActivity extends AppCompatActivity
     private void loadFormularios()
     {
         findViewById(R.id.mainFormPreload).setVisibility(View.VISIBLE);
+        findViewById(R.id.mainFormList).setVisibility(View.GONE);
         Thread net = new Thread(new Runnable()
         {
             @Override
@@ -411,6 +482,7 @@ public class MainActivity extends AppCompatActivity
                     public void run() {
                         try {
                             findViewById(R.id.mainFormPreload).setVisibility(View.GONE);
+                            findViewById(R.id.mainFormList).setVisibility(View.VISIBLE);
                         }
                         catch (NullPointerException e){e.printStackTrace();}
                     }
@@ -418,6 +490,29 @@ public class MainActivity extends AppCompatActivity
             }
         });
         net.start();
+    }
+
+    public static void SyncMessage(final String msg)
+    {
+        try {
+            if (self != null) {
+                self.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (msg == null) {
+                                self.findViewById(R.id.sync_layout).setVisibility(View.GONE);
+                            } else {
+                                ((TextView) self.findViewById(R.id.sync_msg)).setText(msg);
+                                self.findViewById(R.id.sync_layout).setVisibility(View.VISIBLE);
+                            }
+                        }
+                        catch (NullPointerException ignored){}
+                    }
+                });
+            }
+        }
+        catch (NullPointerException ignored){}
     }
 
 }

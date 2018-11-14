@@ -53,13 +53,15 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".activity.ActivityCamera"
-            android:label=""
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-
         <activity
             android:name=".activity.ActivityCanvas"
             android:label="@string/title_activity_canvas"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.FormularioHistoryActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity android:name=".activity.FormularioViewActivity"></activity>
     </application>
 
 </manifest>

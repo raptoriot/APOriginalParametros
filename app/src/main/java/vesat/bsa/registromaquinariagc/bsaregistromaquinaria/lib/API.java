@@ -24,9 +24,7 @@ public class API {
     public final static int CHECK_RECOVERY_CODE = 4;
     public final static int CHANGE_PASS_WITH_RECOVERY_CODE = 5;
     public final static int CHANGE_PASS_WITH_CURRENT_PASS = 6;
-    public final static int SET_ALERTA_LIST = 7;
-    public final static int GET_ALERTA_LIST = 8;
-    public final static int SEND_ALERTA = 9;
+    //public final static int SEND_ALERTA = 7;
     public final static int CREATE_DEVICE = 10;
     public final static int GET_FORMULARIOS_LIST = 20;
     public final static int SYNC_REGISTROS_DATA_FROM_DEVICE = 30;

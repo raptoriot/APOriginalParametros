@@ -2,6 +2,7 @@ package vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,6 +14,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.R;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity.FormularioFillActivity;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity.FormularioHistoryActivity;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.Formulario;
 
 public class AdapterFormularioList extends RecyclerView.Adapter<AdapterFormularioList.CustomViewHolder> {
@@ -35,18 +38,24 @@ public class AdapterFormularioList extends RecyclerView.Adapter<AdapterFormulari
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder customViewHolder, int i) {
-        Formulario formulario = arrFormularios.get(i);
+        final Formulario formulario = arrFormularios.get(i);
         customViewHolder.formName.setText(formulario.nombre);
         customViewHolder.formButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Util.saveToSP(context,formulario,Cons.Current_Form);
+                Intent i = new Intent(context,FormularioFillActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(i);
             }
         });
         customViewHolder.formButton2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Util.saveToSP(context,formulario,Cons.Current_Form);
+                Intent i = new Intent(context,FormularioHistoryActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(i);
             }
         });
     }

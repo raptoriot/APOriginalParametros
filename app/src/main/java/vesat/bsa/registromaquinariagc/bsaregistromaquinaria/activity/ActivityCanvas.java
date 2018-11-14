@@ -28,6 +28,7 @@ public class ActivityCanvas extends AppCompatActivity {
         setContentView(R.layout.activity_canvas);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        setTitle("");
         Util.saveToSP(this,(Boolean.FALSE),Cons.CAMERA_PictureTaked);
         CameraCacheCurrentID = (String) Util.loadFromSP(this,String.class, Cons.CAMERA_CacheCurrentID);
         if(CameraCacheCurrentID != null) {
@@ -59,6 +60,16 @@ public class ActivityCanvas extends AppCompatActivity {
                         Util.saveToSP(getApplicationContext(), (Boolean.TRUE), Cons.CAMERA_PictureTaked);
 
                     }
+                    finish();
+                    return true;
+                }
+            });
+        }
+        MenuItem delItem = menu.findItem(R.id.menu_delete);
+        if (delItem != null){
+            delItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
                     finish();
                     return true;
                 }

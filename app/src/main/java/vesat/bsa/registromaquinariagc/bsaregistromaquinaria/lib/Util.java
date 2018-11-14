@@ -31,6 +31,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.WidthHeight;
+
 public class Util {
 
     @SuppressLint("ApplySharedPref")
@@ -262,23 +264,33 @@ public class Util {
         return base64img;
     }
 
-    public static void loadBase64Img(String rawbase64img, final ImageView targetView, final Activity act)
+    public static WidthHeight loadBase64Img(String rawbase64img, final ImageView targetView, final Activity act)
     {
         try {
             if(rawbase64img != null && !rawbase64img.equalsIgnoreCase("null")
                     && rawbase64img.length() > 24) { // data:image/jpeg;base64,
-                byte[] chartData = Base64.decode(removeBase64ImgWebHeader(rawbase64img),
-                        Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
+                byte[] chartData = Base64.decode(removeBase64ImgWebHeader(rawbase64img), Base64.NO_WRAP |
+                    Base64.URL_SAFE  | Base64.NO_PADDING);
                 final Bitmap bm = BitmapFactory.decodeByteArray(chartData, 0, chartData.length);
                 act.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         targetView.setImageBitmap(bm);
+                        targetView.invalidate();
                     }
                 });
+                if(bm != null)
+                {
+                    return new WidthHeight(bm.getWidth(),bm.getHeight());
+                }
+                return null;
+            }
+            else
+            {
+                return null;
             }
         }
-        catch (IndexOutOfBoundsException e){e.printStackTrace();}
+        catch (Exception e){return null;}
     }
 
     public static boolean copyFile(File src, File dst)  {

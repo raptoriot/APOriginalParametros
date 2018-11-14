@@ -2,9 +2,11 @@ package vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj;
 
 import org.json.JSONObject;
 
+import java.io.Serializable;
+
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Util;
 
-public class Formulario {
+public class Formulario implements Serializable {
 
     public String id;
     public String nombre;
