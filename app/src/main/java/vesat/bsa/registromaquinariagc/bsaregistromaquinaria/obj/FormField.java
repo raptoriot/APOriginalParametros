@@ -9,7 +9,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v7.app.AlertDialog;
+import android.text.InputFilter;
 import android.text.InputType;
+import android.text.Spanned;
+import android.text.method.DigitsKeyListener;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -107,6 +110,8 @@ public class FormField {
                 }
                 ((EditText) view_value).setTextSize(TypedValue.COMPLEX_UNIT_SP,13);
                 ((EditText) view_value).setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                ((EditText) view_value).setKeyListener(
+                        DigitsKeyListener.getInstance("1234567890.,-+"));
                 ((EditText) view_value).setBackgroundColor(Color.parseColor("#dddddd"));
             }
             else if(type.equalsIgnoreCase("TextArea"))
@@ -122,6 +127,21 @@ public class FormField {
                 ((EditText) view_value).setTextSize(TypedValue.COMPLEX_UNIT_SP,13);
                 ((EditText) view_value).setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
                 ((EditText) view_value).setGravity(Gravity.TOP);
+                ((EditText) view_value).setFilters(new InputFilter[]{
+                        new InputFilter() {
+                            public CharSequence filter(CharSequence src, int start,
+                                                       int end, Spanned dst, int dstart, int dend) {
+                                if (src.equals("")) {
+                                    return src;
+                                }
+                                if (src.toString().matches("[0-9A-Za-z*+?$.|" +
+                                            "()\\- =¿!#@%&,;<>_¬¡:ñÑçÇáóéúíÁÓÉÚÍ]+")) {
+                                    return src;
+                                }
+                                return "";
+                            }
+                        }
+                });
                 ((EditText) view_value).setBackgroundColor(Color.parseColor("#dddddd"));
             }
             else if(type.equalsIgnoreCase("Label"))
@@ -396,12 +416,30 @@ public class FormField {
                 }
                 ((EditText) view_value).setTextSize(TypedValue.COMPLEX_UNIT_SP,13);
                 ((EditText) view_value).setInputType(InputType.TYPE_CLASS_TEXT);
+                ((EditText) view_value).setFilters(new InputFilter[]{
+                        new InputFilter() {
+                            public CharSequence filter(CharSequence src, int start,
+                                                       int end, Spanned dst, int dstart, int dend) {
+                                if (src.equals("")) {
+                                    return src;
+                                }
+                                if (src.toString().matches
+                                        ("[0-9A-Za-z*+?$.|" +
+                                                "()\\- =¿!#@%&,;<>_¬¡:ñÑçÇáóéúíÁÓÉÚÍ]+")) {
+                                    return src;
+                                }
+                                return "";
+                            }
+                        }
+                });
                 ((EditText) view_value).setBackgroundColor(Color.parseColor("#dddddd"));
             }
         }
         if(!active)
         {
-            view_value.setFocusable(false);
+            if (view_value != null) {
+                view_value.setFocusable(false);
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity;
 import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -95,7 +96,9 @@ public class FormularioViewActivity extends AppCompatActivity {
         if(cur.moveToNext())
         {
             try {
-                JSONArray datos = new JSONArray(cur.getString(cur.getColumnIndex("datos")));
+                JSONArray datos = new JSONArray(
+                        new String(Base64.decode(cur.getString(cur.getColumnIndex("datos")),
+                                Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)));
                 for(FormSection section : sections) {
                     for(FormField field : section.fields)
                     {

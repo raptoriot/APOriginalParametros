@@ -159,6 +159,8 @@ public class MainActivity extends AppCompatActivity
         {
             ((TextView) navigationView.getHeaderView(0).findViewById(R.id.navUserName)).setText(user_name);
             ((TextView) navigationView.getHeaderView(0).findViewById(R.id.navUserEmail)).setText(user_email);
+            ((TextView) navigationView.getHeaderView(0).findViewById(R.id.navUserDevice)).setText((
+                    "ID Dispositivo: " + device_register_id));
         }
         ((TextView) findViewById(R.id.current_user)).setText(user_email);
 

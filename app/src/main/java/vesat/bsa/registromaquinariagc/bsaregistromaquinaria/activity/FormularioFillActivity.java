@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -378,7 +379,9 @@ public class FormularioFillActivity extends AppCompatActivity {
                     }
                     if(requireds) {
                         DBHelper db = new DBHelper(getApplicationContext());
-                        if (db.addRegistro(formularios, usuarios, fecha, datos.toString(), alerta_nivel, latitud, longitud) > 0) {
+                        if (db.addRegistro(formularios, usuarios, fecha,
+                                Base64.encodeToString(datos.toString().getBytes(),Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)
+                                        , alerta_nivel, latitud, longitud) > 0) {
                             pass = true;
                         }
                         db.close();

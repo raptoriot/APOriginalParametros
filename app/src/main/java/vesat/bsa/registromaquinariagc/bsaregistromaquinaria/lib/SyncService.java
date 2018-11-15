@@ -17,8 +17,10 @@ public class SyncService extends Service {
         {
             try {
                 boolean sync_correct;
-                String user_id = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_ID);
-                String user_pass = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Pass);
+                final String user_id = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_ID);
+                final String user_pass = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Pass);
+                final String device_id = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.Device_ID);
+                final String device_register_id = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.Device_Register_ID);
                 while(user_id != null && user_pass != null) {
                     sync_correct = false;
                     String current_database_location = ((String) Util.loadFromSP(
@@ -34,31 +36,26 @@ public class SyncService extends Service {
                             DBHelper db = new DBHelper(getApplicationContext());
                             Cursor nes = db.getRegistrosSyncNext(last_sync_id);
                             if(MainActivity.status_online) {
-                                if (true) { // (nes.getCount() > 0) {
+                                if (nes.getCount() > 0) {
                                     boolean fail = false;
                                     while (nes.moveToNext() && !fail) {
-                                        //try {
+                                        try {
                                             MainActivity.SyncMessage("Sincronizando " + (nes.getPosition() + 1) + "/"
                                                     + nes.getCount());
                                             JSONObject json = new JSONObject();
                                             Long this_sync_id = (long) nes.getInt(nes.getColumnIndex("_ID"));
-                                            /*String android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),
-                                                    Settings.Secure.ANDROID_ID);
-                                            json.put("device_id", android_id);
-                                            json.put("id", nes.getInt(nes.getColumnIndex("_ID")));
-                                            json.put("nivel", nes.getDouble(nes.getColumnIndex("nivel")));
-                                            json.put("potenciometro", nes.getDouble(nes.getColumnIndex("potenciometro")));
-                                            json.put("manometro", nes.getDouble(nes.getColumnIndex("manometro")));
-                                            json.put("comentario", nes.getString(nes.getColumnIndex("comentario")));
-                                            json.put("foto", nes.getString(nes.getColumnIndex("foto")));
-                                            json.put("operador", nes.getInt(nes.getColumnIndex("operador")));
+                                            json.put("android_bd_id", nes.getString(nes.getColumnIndex("_ID")));
+                                            json.put("dispositivos", device_register_id);
+                                            json.put("formularios", nes.getString(nes.getColumnIndex("formularios")));
+                                            json.put("usuarios", nes.getString(nes.getColumnIndex("usuarios")));
                                             json.put("fecha", nes.getString(nes.getColumnIndex("fecha")));
-                                            json.put("fecha_t", nes.getLong(nes.getColumnIndex("fecha_t")));
-                                            json.put("latitud", nes.getDouble(nes.getColumnIndex("latitud")));
-                                            json.put("longitud", nes.getDouble(nes.getColumnIndex("longitud")));*/
+                                            json.put("datos", nes.getString(nes.getColumnIndex("datos")));
+                                            json.put("alerta_nivel", nes.getString(nes.getColumnIndex("alerta_nivel")));
+                                            json.put("latitud", nes.getString(nes.getColumnIndex("latitud")));
+                                            json.put("longitud", nes.getString(nes.getColumnIndex("longitud")));
                                             boolean pass = false;
-                                            /*String ans_raw = API.readWs(API.SEND_NIVEL_ESPESADOR, user_id, user_pass,
-                                                    json.toString());
+                                            String ans_raw = API.readWs(API.SYNC_REGISTROS_DATA_FROM_DEVICE, user_id, user_pass,
+                                                    device_register_id,device_id,json.toString());
                                             if(ans_raw != null && ans_raw.length() > 0) {
                                                 JSONObject ans = new JSONObject(ans_raw);
                                                 String status = Util.getJSONStringOrNull(ans, "status");
@@ -66,11 +63,11 @@ public class SyncService extends Service {
                                                     pass = true;
                                                     Util.saveToSP(getApplicationContext(),this_sync_id,Cons.last_sync_id);
                                                 }
-                                            }*/
+                                            }
                                             fail = !pass;
-                                       // } catch (JSONException ignored) {
-                                       //     fail = true;
-                                       // }
+                                        } catch (JSONException ignored) {
+                                            fail = true;
+                                        }
                                     }
                                     if (fail) {
                                         MainActivity.SyncMessage("Error de Sincronización.");

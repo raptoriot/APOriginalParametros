@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
@@ -112,7 +113,9 @@ public class FormularioHistoryActivity extends AppCompatActivity {
             table.addView(header);
             Cursor cur = db.getAllRegistrosOfFormulario(Integer.parseInt(current_form.id));
             while (cur.moveToNext()) {
-                JSONArray datos = new JSONArray(cur.getString(cur.getColumnIndex("datos")));
+                JSONArray datos = new JSONArray(
+                        new String(Base64.decode(cur.getString(cur.getColumnIndex("datos")),
+                                Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)));
                 TableRow t_header = new TableRow(this);
                 t_header.setBackgroundColor(Color.parseColor("#dddddd"));
                 t_header.setPadding(1,1,1,1);
