@@ -16,95 +16,141 @@ public class SyncService extends Service {
         public void run()
         {
             try {
-                boolean sync_correct;
+                boolean sync_correct_reg;
+                boolean sync_correct_ron;
                 final String user_id = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_ID);
                 final String user_pass = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Pass);
                 final String device_id = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.Device_ID);
                 final String device_register_id = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.Device_Register_ID);
-                while(user_id != null && user_pass != null) {
-                    sync_correct = false;
-                    String current_database_location = ((String) Util.loadFromSP(
-                            getApplicationContext(),String.class,Cons.Current_Database_Location));
-                    if(current_database_location != null) {
-                        Long last_sync_id = (Long) Util.loadFromSP(getApplicationContext(),Long.class,Cons.last_sync_id);
-                        if(last_sync_id == null)
-                        {
-                            last_sync_id = (long) 0;
-                        }
-                        if(!MainActivity.dialog_moving_db) {
-                            MainActivity.sync_flag = true;
-                            DBHelper db = new DBHelper(getApplicationContext());
-                            Cursor nes = db.getRegistrosSyncNext(last_sync_id);
-                            if(MainActivity.status_online) {
-                                if (nes.getCount() > 0) {
-                                    boolean fail = false;
-                                    while (nes.moveToNext() && !fail) {
-                                        try {
-                                            MainActivity.SyncMessage("Sincronizando " + (nes.getPosition() + 1) + "/"
-                                                    + nes.getCount());
-                                            JSONObject json = new JSONObject();
-                                            Long this_sync_id = (long) nes.getInt(nes.getColumnIndex("_ID"));
-                                            json.put("android_bd_id", nes.getString(nes.getColumnIndex("_ID")));
-                                            json.put("dispositivos", device_register_id);
-                                            json.put("formularios", nes.getString(nes.getColumnIndex("formularios")));
-                                            json.put("usuarios", nes.getString(nes.getColumnIndex("usuarios")));
-                                            json.put("fecha", nes.getString(nes.getColumnIndex("fecha")));
-                                            json.put("datos", nes.getString(nes.getColumnIndex("datos")));
-                                            json.put("alerta_nivel", nes.getString(nes.getColumnIndex("alerta_nivel")));
-                                            json.put("latitud", nes.getString(nes.getColumnIndex("latitud")));
-                                            json.put("longitud", nes.getString(nes.getColumnIndex("longitud")));
-                                            boolean pass = false;
-                                            String ans_raw = API.readWs(API.SYNC_REGISTROS_DATA_FROM_DEVICE, user_id, user_pass,
-                                                    device_register_id,device_id,json.toString());
-                                            if(ans_raw != null && ans_raw.length() > 0) {
-                                                JSONObject ans = new JSONObject(ans_raw);
-                                                String status = Util.getJSONStringOrNull(ans, "status");
-                                                if (status != null && status.contentEquals("ok")) {
-                                                    pass = true;
-                                                    Util.saveToSP(getApplicationContext(),this_sync_id,Cons.last_sync_id);
+                if(user_id != null && user_pass != null && device_id != null && device_register_id != null) {
+                    while(true) {
+                        sync_correct_reg = false;
+                        sync_correct_ron = false;
+                        String current_database_location = ((String) Util.loadFromSP(
+                                getApplicationContext(), String.class, Cons.Current_Database_Location));
+                        if (current_database_location != null) {
+                            if (!MainActivity.dialog_moving_db) {
+                                MainActivity.sync_flag = true;
+                                DBHelper db = new DBHelper(getApplicationContext());
+                                Cursor nesRondas = db.getRondasSyncNext();
+                                Cursor nesRegistros = db.getRegistrosSyncNext();
+                                if (MainActivity.getStatusOnline()) {
+                                    if (nesRondas.getCount() > 0) { // Sincronizar Rondas Primero!
+                                        boolean fail2 = false;
+                                        while (nesRondas.moveToNext() && !fail2) {
+                                            try {
+                                                MainActivity.SyncMessage("Sincronizando Rondas " + (nesRondas.getPosition() + 1) + "/"
+                                                        + nesRondas.getCount());
+                                                JSONObject json = new JSONObject();
+                                                Long this_sync_id = (long) nesRondas.getInt(nesRondas.getColumnIndex("_ID"));
+                                                json.put("android_bd_id", nesRondas.getString(nesRondas.getColumnIndex("_ID")));
+                                                json.put("dispositivos", device_register_id);
+                                                json.put("usuarios", nesRondas.getString(nesRondas.getColumnIndex("usuarios")));
+                                                json.put("fecha", nesRondas.getString(nesRondas.getColumnIndex("fecha")));
+                                                json.put("comentario", nesRondas.getString(nesRondas.getColumnIndex("comentario")));
+                                                boolean pass = false;
+                                                String ans_raw = API.readWs(API.SYNC_RONDAS_DATA_FROM_DEVICE, user_id, user_pass,
+                                                        device_register_id, device_id, json.toString());
+                                                if (ans_raw != null && ans_raw.length() > 0) {
+                                                    JSONObject ans = new JSONObject(ans_raw);
+                                                    String status = Util.getJSONStringOrNull(ans, "status");
+                                                    if (status != null && status.contentEquals("ok")) {
+                                                        pass = true;
+                                                        db.markRondaAsSynced(this_sync_id);
+                                                    }
                                                 }
+                                                fail2 = !pass;
+                                            } catch (JSONException ignored) {
+                                                //ignored.printStackTrace();
+                                                fail2 = true;
                                             }
-                                            fail = !pass;
-                                        } catch (JSONException ignored) {
-                                            fail = true;
+                                        }
+                                        if (!fail2) {
+                                            sync_correct_ron = true;
                                         }
                                     }
-                                    if (fail) {
+                                    if (nesRegistros.getCount() > 0) {
+                                        boolean fail = false;
+                                        while (nesRegistros.moveToNext() && !fail) {
+                                            try {
+                                                MainActivity.SyncMessage("Sincronizando Registros " + (nesRegistros.getPosition() + 1) + "/"
+                                                        + nesRegistros.getCount());
+                                                JSONObject json = new JSONObject();
+                                                Long this_sync_id = (long) nesRegistros.getInt(nesRegistros.getColumnIndex("_ID"));
+                                                json.put("android_bd_id", nesRegistros.getString(nesRegistros.getColumnIndex("_ID")));
+                                                json.put("dispositivos", device_register_id);
+                                                json.put("formularios", nesRegistros.getString(nesRegistros.getColumnIndex("formularios")));
+                                                json.put("usuarios", nesRegistros.getString(nesRegistros.getColumnIndex("usuarios")));
+                                                json.put("fecha", nesRegistros.getString(nesRegistros.getColumnIndex("fecha")));
+                                                json.put("datos", nesRegistros.getString(nesRegistros.getColumnIndex("datos")));
+                                                json.put("alerta_nivel", nesRegistros.getString(nesRegistros.getColumnIndex("alerta_nivel")));
+                                                json.put("latitud", nesRegistros.getString(nesRegistros.getColumnIndex("latitud")));
+                                                json.put("longitud", nesRegistros.getString(nesRegistros.getColumnIndex("longitud")));
+                                                String ronda = nesRegistros.getString(nesRegistros.getColumnIndex("rondas"));
+                                                json.put("rondas",ronda);
+                                                boolean pass = false;
+                                                if(ronda == null || db.rondaIsSynced(Long.parseLong(ronda))) {
+                                                    String ans_raw = API.readWs(API.SYNC_REGISTROS_DATA_FROM_DEVICE, user_id, user_pass,
+                                                            device_register_id, device_id, json.toString());
+                                                    if (ans_raw != null && ans_raw.length() > 0) {
+                                                        JSONObject ans = new JSONObject(ans_raw);
+                                                        String status = Util.getJSONStringOrNull(ans, "status");
+                                                        if (status != null && status.contentEquals("ok")) {
+                                                            pass = true;
+                                                            db.markRegistroAsSynced(this_sync_id);
+                                                        }
+                                                    }
+                                                }
+                                                fail = !pass;
+                                            } catch (JSONException | NumberFormatException ignored) {
+                                                //ignored.printStackTrace();
+                                                fail = true;
+                                            }
+                                        }
+                                        if (!fail) {
+                                            sync_correct_reg = true;
+                                        }
+                                    }
+                                    if ((sync_correct_reg && sync_correct_ron) ||
+                                            (sync_correct_reg && nesRondas.getCount() == 0) ||
+                                            (sync_correct_ron && nesRegistros.getCount() == 0)) {
+                                        MainActivity.SyncMessage("Sincronización Correcta.");
+                                        Thread.sleep(5000);
+                                        MainActivity.SyncMessage(null);
+                                    }
+                                    else if (sync_correct_reg || sync_correct_ron) {
+                                        MainActivity.SyncMessage("Sincronización Incompleta.");
+                                        Thread.sleep(5000);
+                                        MainActivity.SyncMessage(null);
+                                    }
+                                    else if(nesRegistros.getCount() > 0 || nesRondas.getCount() > 0)
+                                    {
                                         MainActivity.SyncMessage("Error de Sincronización.");
+                                        Thread.sleep(5000);
+                                        MainActivity.SyncMessage(null);
                                     }
                                     else
                                     {
-                                        sync_correct = true;
+                                        MainActivity.SyncMessage(null);
                                     }
                                 } else {
-                                    MainActivity.SyncMessage(null);
+                                    if (nesRegistros.getCount() > 0 || nesRondas.getCount() > 0) {
+                                        MainActivity.SyncMessage("Pendiente Envío de Datos.");
+                                    } else {
+                                        MainActivity.SyncMessage(null);
+                                    }
                                 }
+                                nesRegistros.close();
+                                nesRondas.close();
+                                db.close();
+                                MainActivity.sync_flag = false;
                             }
-                            else
-                            {
-                                if(nes.getCount() > 0)
-                                {
-                                    MainActivity.SyncMessage("Pendiente Envío de Datos.");
-                                }
-                                else
-                                {
-                                    MainActivity.SyncMessage(null);
-                                }
-                            }
-                            db.close();
-                            if(sync_correct)
-                            {
-                                MainActivity.SyncMessage("Sincronización Correcta.");
-                                Thread.sleep(3000);
-                                MainActivity.SyncMessage(null);
-                            }
-                            MainActivity.sync_flag = false;
                         }
+                        Thread.sleep(10000);
                     }
-                    Thread.sleep(5000);
                 }
             }
-            catch(InterruptedException e){}
+            catch(InterruptedException ignored){}
         }
     });
 

@@ -44,4 +44,7 @@
     <string name="borrar">Borrar</string>
     <string name="pendiente_env_o_de_datos">Pendiente Envío de Datos</string>
     <string name="dispositivo_id">ID Dispositivo: ---</string>
+    <string name="nueva_ronda">Nueva Ronda</string>
+    <string name="ingreso_aislado">Ingreso Aislado</string>
+    <string name="hora_de_registro">Hora de Registro</string>
 </resources>

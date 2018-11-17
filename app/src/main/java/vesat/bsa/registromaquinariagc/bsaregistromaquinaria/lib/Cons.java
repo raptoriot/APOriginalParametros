@@ -16,10 +16,10 @@ public class Cons {
 
     public final static String Current_Form = "Current_Form";
     public final static String Current_FormElem = "Current_FormElem";
+    public final static String Current_Ronda_ID = "Current_Ronda_ID";
 
     public final static String Current_Database_Location = "Current_Database_Location";
     public static final String Database_Name = "DatosRegistroMaquinaria.db";
-    public static final String last_sync_id = "last_sync_id";
 
     public final static String CAMERA_CacheCurrentID = "CAMERA_CacheCurrentID";
     public final static String CAMERA_PictureTaked = "CAMERA_PictureTaked";

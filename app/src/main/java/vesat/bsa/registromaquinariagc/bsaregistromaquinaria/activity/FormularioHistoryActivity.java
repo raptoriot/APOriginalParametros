@@ -210,6 +210,7 @@ public class FormularioHistoryActivity extends AppCompatActivity {
                 t_header.addView(button_detail);
                 table.addView(t_header);
             }
+            cur.close();
         }
         catch (NumberFormatException | JSONException ignored){ignored.printStackTrace();}
         db.close();

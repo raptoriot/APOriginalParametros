@@ -43,7 +43,9 @@ import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.WidthHeight;
 
 public class FormularioFillActivity extends AppCompatActivity {
 
+    private String fecha;
     private Formulario current_form = null;
+    private Long current_ronda_id = null;
     private ArrayList<FormSection> sections = new ArrayList<>();
 
     private boolean saveLock = false;
@@ -65,7 +67,10 @@ public class FormularioFillActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("");
-        current_form = (Formulario) Util.loadFromSP(this,Formulario.class, Cons.Current_Form);
+        fecha = Util.getFechaFullActual();
+        ((EditText) findViewById(R.id.currentHoraRegistro)).setText(fecha);
+        current_ronda_id = (Long) Util.loadFromSP(this,Long.class,Cons.Current_Ronda_ID);
+        current_form = (Formulario) Util.loadFromSP(this,Formulario.class,Cons.Current_Form);
         if(current_form != null)
         {
             alertas1 = (String) Util.loadFromSP(this,String.class,Cons.Email_Alertas_1);
@@ -85,7 +90,7 @@ public class FormularioFillActivity extends AppCompatActivity {
     {
         LinearLayout variableContent = findViewById(R.id.variableContentLayout);
         findViewById(R.id.auxProgressBar).setVisibility(View.VISIBLE);
-        findViewById(R.id.variableContentLayout).setVisibility(View.GONE);
+        findViewById(R.id.formularioTarea).setVisibility(View.GONE);
         findViewById(R.id.navigationMenu).setVisibility(View.GONE);
         setTitle(current_form.nombre);
         try {
@@ -119,7 +124,7 @@ public class FormularioFillActivity extends AppCompatActivity {
             finish();
         }
         findViewById(R.id.auxProgressBar).setVisibility(View.GONE);
-        findViewById(R.id.variableContentLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.formularioTarea).setVisibility(View.VISIBLE);
         findViewById(R.id.navigationMenu).setVisibility(View.VISIBLE);
     }
 
@@ -281,7 +286,7 @@ public class FormularioFillActivity extends AppCompatActivity {
         saveLock = true;
         Toast.makeText(this,"Guardando",Toast.LENGTH_SHORT).show();
         findViewById(R.id.auxProgressBar).setVisibility(View.VISIBLE);
-        findViewById(R.id.variableContentLayout).setVisibility(View.GONE);
+        findViewById(R.id.formularioTarea).setVisibility(View.GONE);
         findViewById(R.id.navigationMenu).setVisibility(View.GONE);
         Thread net = new Thread(new Runnable() {
             @Override
@@ -292,7 +297,6 @@ public class FormularioFillActivity extends AppCompatActivity {
                     int formularios = Integer.parseInt(current_form.id);
                     int usuarios = Integer.parseInt(
                             (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_ID));
-                    String fecha = Util.getFechaFullActual();
                     int alerta_nivel = nivelEnvioAlerta;
                     Double latitud = lastLatitud;
                     Double longitud = lastLongitud;
@@ -381,7 +385,7 @@ public class FormularioFillActivity extends AppCompatActivity {
                         DBHelper db = new DBHelper(getApplicationContext());
                         if (db.addRegistro(formularios, usuarios, fecha,
                                 Base64.encodeToString(datos.toString().getBytes(),Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)
-                                        , alerta_nivel, latitud, longitud) > 0) {
+                                        , alerta_nivel, latitud, longitud, current_ronda_id) > 0) {
                             pass = true;
                         }
                         db.close();
@@ -425,7 +429,7 @@ public class FormularioFillActivity extends AppCompatActivity {
                             }
                             saveLock = false;
                             findViewById(R.id.auxProgressBar).setVisibility(View.GONE);
-                            findViewById(R.id.variableContentLayout).setVisibility(View.VISIBLE);
+                            findViewById(R.id.formularioTarea).setVisibility(View.VISIBLE);
                             findViewById(R.id.navigationMenu).setVisibility(View.VISIBLE);
                             finish();
                         }
@@ -434,7 +438,7 @@ public class FormularioFillActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Debe Llenar Todos Los Campos Obligatorios (*)", Toast.LENGTH_SHORT).show();
                             saveLock = false;
                             findViewById(R.id.auxProgressBar).setVisibility(View.GONE);
-                            findViewById(R.id.variableContentLayout).setVisibility(View.VISIBLE);
+                            findViewById(R.id.formularioTarea).setVisibility(View.VISIBLE);
                             findViewById(R.id.navigationMenu).setVisibility(View.VISIBLE);
                         }
                     }

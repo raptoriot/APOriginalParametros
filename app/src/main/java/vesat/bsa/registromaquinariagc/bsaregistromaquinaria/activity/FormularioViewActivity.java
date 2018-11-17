@@ -53,7 +53,7 @@ public class FormularioViewActivity extends AppCompatActivity {
     {
         LinearLayout variableContent = findViewById(R.id.variableContentLayout);
         findViewById(R.id.auxProgressBar).setVisibility(View.VISIBLE);
-        findViewById(R.id.variableContentLayout).setVisibility(View.GONE);
+        findViewById(R.id.formularioTarea).setVisibility(View.GONE);
         setTitle(current_form.nombre);
         try {
             JSONObject form = new JSONObject(current_form.definicion);
@@ -86,7 +86,7 @@ public class FormularioViewActivity extends AppCompatActivity {
         }
         loadFormularioData();
         findViewById(R.id.auxProgressBar).setVisibility(View.GONE);
-        findViewById(R.id.variableContentLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.formularioTarea).setVisibility(View.VISIBLE);
     }
 
     private void loadFormularioData()
@@ -95,6 +95,7 @@ public class FormularioViewActivity extends AppCompatActivity {
         Cursor cur = db.getRegistroById(current_form_elem);
         if(cur.moveToNext())
         {
+            ((EditText) findViewById(R.id.currentHoraRegistro)).setText(cur.getString(cur.getColumnIndex("fecha")));
             try {
                 JSONArray datos = new JSONArray(
                         new String(Base64.decode(cur.getString(cur.getColumnIndex("datos")),
@@ -140,6 +141,7 @@ public class FormularioViewActivity extends AppCompatActivity {
             }
             catch (JSONException ignored){}
         }
+        cur.close();
         db.close();
     }
 }

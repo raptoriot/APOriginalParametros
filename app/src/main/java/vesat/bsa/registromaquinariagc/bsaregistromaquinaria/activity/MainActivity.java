@@ -17,7 +17,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,9 +29,10 @@ import java.util.ArrayList;
 
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.R;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.API;
-import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioList;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioList2;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Cons;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.SyncService;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.ThreadSharedContent;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Util;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.Formulario;
 
@@ -51,14 +51,31 @@ public class MainActivity extends AppCompatActivity
 
     private Thread thread_timer = null;
     private Thread thread_online = null;
+    private ThreadSharedContent thread_shared = new ThreadSharedContent();
     public static boolean sync_flag = false;
     public static boolean dialog_moving_db = false;
-    public static boolean status_online = false;
     private String dialog_cur_path = null;
     private int dialog_checked_item = -1;
 
-    protected AdapterFormularioList adapterFormularioList = null;
+    protected AdapterFormularioList2 adapterFormularioList = null;
     private ArrayList<Formulario> arrFormulario = new ArrayList<>();
+
+    public static boolean getStatusOnline()
+    {
+        if(self != null) {
+            if (self.thread_shared != null) {
+                return self.thread_shared.status_online;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     private void loadVars()
     {
@@ -75,6 +92,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        self = this;
         loadVars();
         if(current_database_location == null)
         {
@@ -178,64 +196,13 @@ public class MainActivity extends AppCompatActivity
         self = this;
         loadVars();
         startService(new Intent(this,SyncService.class));
-        thread_timer = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true)
-                {
-                    try {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ((TextView) findViewById(R.id.tag_hora)).setText(Util.getHoraActual());
-                            }
-                        });
-                        Thread.sleep(1000);
-                    }
-                    catch (InterruptedException ignored){}
-                }
-            }
-        });
-        thread_timer.start();
+        if(thread_timer == null) {
+            thread_timer = thread_shared.threadTimer(this);
+            thread_timer.start();
+        }
         if(thread_online == null)
         {
-            thread_online = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        while(true) {
-                            boolean pass = false;
-                            String ans_raw = API.readWs(API.PING, "0","0","0","0",null);
-                            if(ans_raw != null && ans_raw.length() > 0)
-                            {
-                                try {
-                                    JSONObject ans = new JSONObject(ans_raw);
-                                    String status = Util.getJSONStringOrNull(ans, "status");
-                                    if (status != null && status.contentEquals("ok")) {
-                                        pass = true;
-                                    }
-                                }
-                                catch (JSONException ignored){}
-                            }
-                            status_online = pass;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if(status_online) {
-                                        ((ImageView) findViewById(R.id.semaforo_estado)).setImageResource(R.drawable.verde);
-                                    }
-                                    else
-                                    {
-                                        ((ImageView) findViewById(R.id.semaforo_estado)).setImageResource(R.drawable.rojo);
-                                    }
-                                }
-                            });
-                            Thread.sleep(5000);
-                        }
-                    }
-                    catch (InterruptedException ignored){}
-                }
-            });
+            thread_online = thread_shared.threadPing(this);
             thread_online.start();
         }
         loadFormularios();
@@ -303,7 +270,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void selectDBLocation(final boolean appStarted,final MainActivity act)
+    private void selectDBLocation(final boolean appStarted, final MainActivity act)
     {
         if(!sync_flag && !dialog_moving_db) {
             final ArrayList<String> paths = Util.getFilesDirList(getApplicationContext());
@@ -340,7 +307,7 @@ public class MainActivity extends AppCompatActivity
                 adb.setNegativeButton("Salir", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(appStarted)
+                        if(appStarted) // Si no no carga la lista de formularios, ¿bug de android?
                         {
                             act.recreate();
                         }
@@ -349,7 +316,7 @@ public class MainActivity extends AppCompatActivity
                 });
                 adb.setNeutralButton("Aplicar Cambio", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface d, int which) {
+                    public void onClick(DialogInterface dialog, int which) {
                         if(!dialog_moving_db) {
                             dialog_moving_db = true;
                             if (dialog_cur_path != null &&
@@ -400,10 +367,11 @@ public class MainActivity extends AppCompatActivity
                             Util.saveToSP(getApplicationContext(), paths.get(dialog_checked_item), Cons.Current_Database_Location);
                             dialog_moving_db = false;
                         }
-                        if(appStarted)
+                        if(appStarted) // Si no no carga la lista de formularios, ¿bug de android?
                         {
                             act.recreate();
                         }
+                        dialog.dismiss();
                     }
                 });
                 if(dialog_cur_path != null) {
@@ -430,70 +398,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void loadFormularios()
-    {
-        findViewById(R.id.mainFormPreload).setVisibility(View.VISIBLE);
-        findViewById(R.id.mainFormList).setVisibility(View.GONE);
-        Thread net = new Thread(new Runnable()
-        {
-            @Override
-            public void run() {
-                try {
-                    if (adapterFormularioList != null) {
-                        arrFormulario.clear();
-                    }
-                    String ans_raw = API.readWs(API.GET_FORMULARIOS_LIST,user_id,user_pass,device_register_id,
-                                device_id,null);
-                    if(ans_raw != null && ans_raw.length() > 0) {
-                        JSONObject ans = new JSONObject(ans_raw);
-                        String status = Util.getJSONStringOrNull(ans, "status");
-                        device_register_id = Util.getJSONStringOrNull(ans, "device_reg_id");
-                        if (status != null && status.contentEquals("ok") && ans.has("formularios"))
-                        {
-                            JSONArray jformularios = ans.getJSONArray("formularios");
-                            for(int x = 0;x < jformularios.length();x++)
-                            {
-                                JSONObject jform = jformularios.getJSONObject(x);
-                                Formulario f = new Formulario();
-                                f.loadFromJSON(jform);
-                                arrFormulario.add(f);
-                            }
-                        }
-                    }
-                    try {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(adapterFormularioList == null) {
-                                    adapterFormularioList = new AdapterFormularioList(getApplicationContext(), arrFormulario);
-                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setNestedScrollingEnabled(false);
-                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setAdapter(adapterFormularioList);
-                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setLayoutManager(
-                                            new LinearLayoutManager(getApplicationContext()));
-                                }
-                                adapterFormularioList.notifyDataSetChanged();
-                            }
-                        });
-                    } catch (NullPointerException ignored) {
-                    }
-                } catch (JSONException e) {
-
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            findViewById(R.id.mainFormPreload).setVisibility(View.GONE);
-                            findViewById(R.id.mainFormList).setVisibility(View.VISIBLE);
-                        }
-                        catch (NullPointerException e){e.printStackTrace();}
-                    }
-                });
-            }
-        });
-        net.start();
-    }
-
     public static void SyncMessage(final String msg)
     {
         try {
@@ -517,4 +421,85 @@ public class MainActivity extends AppCompatActivity
         catch (NullPointerException ignored){}
     }
 
+    private void loadFormularios()
+    {
+        findViewById(R.id.mainFormPreload).setVisibility(View.VISIBLE);
+        findViewById(R.id.mainFormList).setVisibility(View.GONE);
+        Thread net = new Thread(new Runnable()
+        {
+            @Override
+            public void run() {
+                try {
+                    if (adapterFormularioList != null) {
+                        arrFormulario.clear();
+                    }
+                    String ans_raw = API.readWs(API.GET_FORMULARIOS_LIST,user_id,user_pass,device_register_id,
+                            device_id,null);
+                    if(ans_raw != null && ans_raw.length() > 0) {
+                        JSONObject ans = new JSONObject(ans_raw);
+                        String status = Util.getJSONStringOrNull(ans, "status");
+                        device_register_id = Util.getJSONStringOrNull(ans, "device_reg_id");
+                        if (status != null && status.contentEquals("ok") && ans.has("formularios"))
+                        {
+                            JSONArray jformularios = ans.getJSONArray("formularios");
+                            for(int x = 0;x < jformularios.length();x++)
+                            {
+                                JSONObject jform = jformularios.getJSONObject(x);
+                                Formulario f = new Formulario();
+                                f.loadFromJSON(jform);
+                                arrFormulario.add(f);
+                            }
+                        }
+                    }
+                    try {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(adapterFormularioList == null) {
+                                    adapterFormularioList = new AdapterFormularioList2(getApplicationContext(), arrFormulario);
+                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setNestedScrollingEnabled(false);
+                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setAdapter(adapterFormularioList);
+                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setLayoutManager(
+                                            new LinearLayoutManager(getApplicationContext()));
+                                }
+                                adapterFormularioList.notifyDataSetChanged();
+                            }
+                        });
+                    } catch (NullPointerException ignored) {
+                    }
+                } catch (JSONException ignored) {
+
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            findViewById(R.id.mainFormPreload).setVisibility(View.GONE);
+                            findViewById(R.id.mainFormList).setVisibility(View.VISIBLE);
+                        }
+                        catch (NullPointerException e){e.printStackTrace();}
+                    }
+                });
+            }
+        });
+        net.start();
+    }
+
+    public void onClick(View view) {
+        switch (view.getId())
+        {
+            case R.id.btnNewRonda:
+            {
+                Intent i = new Intent(this,RondaSelectFormularioActivity.class);
+                startActivity(i);
+            }
+            break;
+            case R.id.btnNewRegistroAislado:
+            {
+                Intent i = new Intent(this, IngresoAisladoSelectFormularioActivity.class);
+                startActivity(i);
+            }
+            break;
+        }
+    }
 }

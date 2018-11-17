@@ -24,12 +24,12 @@
             android:text="@string/formulario"/>
 
         <ImageView
-            android:id="@+id/formButton"
+            android:id="@+id/formButton2"
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_note_add_black_24dp"
+            android:src="@drawable/ic_format_list_numbered_black_24dp"
             tools:ignore="ContentDescription" />
 
     </LinearLayout>
