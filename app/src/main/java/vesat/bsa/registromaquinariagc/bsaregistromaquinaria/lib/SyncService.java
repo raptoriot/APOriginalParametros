@@ -8,7 +8,9 @@ import android.os.IBinder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity.IngresoAisladoSelectFormularioActivity;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity.MainActivity;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity.RondaSelectFormularioActivity;
 
 public class SyncService extends Service {
     Thread slowWork = new Thread(new Runnable()
@@ -39,15 +41,16 @@ public class SyncService extends Service {
                                         boolean fail2 = false;
                                         while (nesRondas.moveToNext() && !fail2) {
                                             try {
-                                                MainActivity.SyncMessage("Sincronizando Rondas " + (nesRondas.getPosition() + 1) + "/"
+                                                SyncMessage("Sincronizando Rondas " + (nesRondas.getPosition() + 1) + "/"
                                                         + nesRondas.getCount());
                                                 JSONObject json = new JSONObject();
-                                                Long this_sync_id = (long) nesRondas.getInt(nesRondas.getColumnIndex("_ID"));
+                                                String this_sync_id = nesRondas.getString(nesRondas.getColumnIndex("uuid"));
                                                 json.put("android_bd_id", nesRondas.getString(nesRondas.getColumnIndex("_ID")));
                                                 json.put("dispositivos", device_register_id);
                                                 json.put("usuarios", nesRondas.getString(nesRondas.getColumnIndex("usuarios")));
                                                 json.put("fecha", nesRondas.getString(nesRondas.getColumnIndex("fecha")));
                                                 json.put("comentario", nesRondas.getString(nesRondas.getColumnIndex("comentario")));
+                                                json.put("uuid", nesRondas.getString(nesRondas.getColumnIndex("uuid")));
                                                 boolean pass = false;
                                                 String ans_raw = API.readWs(API.SYNC_RONDAS_DATA_FROM_DEVICE, user_id, user_pass,
                                                         device_register_id, device_id, json.toString());
@@ -73,7 +76,7 @@ public class SyncService extends Service {
                                         boolean fail = false;
                                         while (nesRegistros.moveToNext() && !fail) {
                                             try {
-                                                MainActivity.SyncMessage("Sincronizando Registros " + (nesRegistros.getPosition() + 1) + "/"
+                                                SyncMessage("Sincronizando Registros " + (nesRegistros.getPosition() + 1) + "/"
                                                         + nesRegistros.getCount());
                                                 JSONObject json = new JSONObject();
                                                 Long this_sync_id = (long) nesRegistros.getInt(nesRegistros.getColumnIndex("_ID"));
@@ -86,10 +89,10 @@ public class SyncService extends Service {
                                                 json.put("alerta_nivel", nesRegistros.getString(nesRegistros.getColumnIndex("alerta_nivel")));
                                                 json.put("latitud", nesRegistros.getString(nesRegistros.getColumnIndex("latitud")));
                                                 json.put("longitud", nesRegistros.getString(nesRegistros.getColumnIndex("longitud")));
-                                                String ronda = nesRegistros.getString(nesRegistros.getColumnIndex("rondas"));
-                                                json.put("rondas",ronda);
+                                                String rondas_uuid = nesRegistros.getString(nesRegistros.getColumnIndex("rondas_uuid"));
+                                                json.put("rondas_uuid",rondas_uuid);
                                                 boolean pass = false;
-                                                if(ronda == null || db.rondaIsSynced(Long.parseLong(ronda))) {
+                                                if(rondas_uuid == null || db.rondaIsSynced(rondas_uuid)) {
                                                     String ans_raw = API.readWs(API.SYNC_REGISTROS_DATA_FROM_DEVICE, user_id, user_pass,
                                                             device_register_id, device_id, json.toString());
                                                     if (ans_raw != null && ans_raw.length() > 0) {
@@ -114,30 +117,30 @@ public class SyncService extends Service {
                                     if ((sync_correct_reg && sync_correct_ron) ||
                                             (sync_correct_reg && nesRondas.getCount() == 0) ||
                                             (sync_correct_ron && nesRegistros.getCount() == 0)) {
-                                        MainActivity.SyncMessage("Sincronización Correcta.");
+                                        SyncMessage("Sincronización Correcta.");
                                         Thread.sleep(5000);
-                                        MainActivity.SyncMessage(null);
+                                        SyncMessage(null);
                                     }
                                     else if (sync_correct_reg || sync_correct_ron) {
-                                        MainActivity.SyncMessage("Sincronización Incompleta.");
+                                        SyncMessage("Sincronización Incompleta.");
                                         Thread.sleep(5000);
-                                        MainActivity.SyncMessage(null);
+                                        SyncMessage(null);
                                     }
                                     else if(nesRegistros.getCount() > 0 || nesRondas.getCount() > 0)
                                     {
-                                        MainActivity.SyncMessage("Error de Sincronización.");
+                                        SyncMessage("Error de Sincronización.");
                                         Thread.sleep(5000);
-                                        MainActivity.SyncMessage(null);
+                                        SyncMessage(null);
                                     }
                                     else
                                     {
-                                        MainActivity.SyncMessage(null);
+                                        SyncMessage(null);
                                     }
                                 } else {
                                     if (nesRegistros.getCount() > 0 || nesRondas.getCount() > 0) {
-                                        MainActivity.SyncMessage("Pendiente Envío de Datos.");
+                                        SyncMessage("Pendiente Envío de Datos.");
                                     } else {
-                                        MainActivity.SyncMessage(null);
+                                        SyncMessage(null);
                                     }
                                 }
                                 nesRegistros.close();
@@ -153,6 +156,13 @@ public class SyncService extends Service {
             catch(InterruptedException ignored){}
         }
     });
+    
+    private void SyncMessage(String msg)
+    {
+        MainActivity.SyncMessage(msg);
+        RondaSelectFormularioActivity.SyncMessage(msg);
+        IngresoAisladoSelectFormularioActivity.SyncMessage(msg);
+    }
 
     public IBinder onBind(Intent intent)
     {

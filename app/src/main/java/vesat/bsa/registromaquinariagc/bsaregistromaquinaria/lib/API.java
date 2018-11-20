@@ -8,14 +8,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-//import java.net.HttpsURLConnection;
-import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
+//import java.net.HttpURLConnection;
 import java.net.URL;
+
+
 
 public class API {
 
-    private final static String ws_location = "http://172.25.70.9/BSARegistroMaquinariaGCWebWS/public_html/ws/";
-    //private final static String ws_location = "https://aridos.vesat.cl/bsa_registro_maq_gc/ws/index.php";
+    //private final static String ws_location = "http://172.25.70.9/BSARegistroMaquinariaGCWebWS/public_html/ws/";
+    private final static String ws_location = "https://aridos.vesat.cl/bsa_registro_maq_gc/ws/index.php";
     public final static int PING = 0;
     public final static int QUERY_LOGIN = 1;
     public final static int REGISTER_LOGIN = 2;
@@ -23,7 +25,6 @@ public class API {
     public final static int CHECK_RECOVERY_CODE = 4;
     public final static int CHANGE_PASS_WITH_RECOVERY_CODE = 5;
     public final static int CHANGE_PASS_WITH_CURRENT_PASS = 6;
-    //public final static int SEND_ALERTA = 7;
     public final static int CREATE_DEVICE = 10;
     public final static int GET_FORMULARIOS_LIST = 20;
     public final static int SYNC_REGISTROS_DATA_FROM_DEVICE = 30;
@@ -53,7 +54,7 @@ public class API {
 
 
             //if(ws_location.startsWith("https")) {
-             /*   URL ws_url = new URL(ws_location);
+                URL ws_url = new URL(ws_location);
                 HttpsURLConnection conn = (HttpsURLConnection) ws_url.openConnection();
                 conn.setRequestProperty("Authorization",getAuthHeader());
                 conn.setRequestMethod("POST");
@@ -73,12 +74,12 @@ public class API {
                     retBuilder.append(line);
                 }
                 ret = retBuilder.toString();
-                System.out.println("WEB SERVICE CALL:" + ws_url + "\nWEB SERVICE PARAM:" + urlParameters.replace("&","\n")
-                        +"\nWEB SERVICE ANS:" + ret);*/
+                //System.out.println("WEB SERVICE CALL:" + ws_url + "\nWEB SERVICE PARAM:" + urlParameters.replace("&","\n")
+                //        +"\nWEB SERVICE ANS:" + ret);
           //  }
             //else
             //{
-                URL ws_url = new URL(ws_location);
+            /*    URL ws_url = new URL(ws_location);
                 HttpURLConnection conn = (HttpURLConnection) ws_url.openConnection();
                 conn.setRequestProperty("Authorization",getAuthHeader());
                 conn.setRequestMethod("POST");
@@ -99,7 +100,7 @@ public class API {
                 }
                 ret = retBuilder.toString();
                 System.out.println("WEB SERVICE CALL:" + ws_url + "\nWEB SERVICE PARAM:" + urlParameters.replace("&","\n")
-                        +"\nWEB SERVICE ANS:" + ret);
+                        +"\nWEB SERVICE ANS:" + ret);*/
             //}
         }
         catch (IOException ignore){

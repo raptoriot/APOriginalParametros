@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">BSA Registro Maquinaria</string>
+    <string name="app_name">BSA Parametros de Operación LB</string>
     <string name="logo_bsa">Logo BSA</string>
-    <string name="registro_de_maquinaria">Registro de Maquinaria</string>
+    <string name="registro_de_maquinaria">Parametros de Operación Lo Blanco</string>
     <string name="email">Email</string>
     <string name="contrase_a">Contraseña</string>
     <string name="ingresar">Ingresar</string>
@@ -47,4 +47,5 @@
     <string name="nueva_ronda">Nueva Ronda</string>
     <string name="ingreso_aislado">Ingreso Aislado</string>
     <string name="hora_de_registro">Hora de Registro</string>
+    <string name="justificaci_n">Justificación</string>
 </resources>

@@ -11,12 +11,6 @@
             android:title="@string/base_de_datos_local" />
 
         <item
-            android:id="@+id/nav_alert"
-            android:checkable="false"
-            android:icon="@drawable/ic_add_alert_black_24dp"
-            android:title="@string/env_o_de_alertas" />
-
-        <item
             android:id="@+id/nav_perfil"
             android:checkable="false"
             android:icon="@drawable/ic_person_black_24dp"

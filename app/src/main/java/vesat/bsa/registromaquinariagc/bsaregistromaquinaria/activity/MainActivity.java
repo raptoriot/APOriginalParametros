@@ -17,6 +17,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +30,7 @@ import java.util.ArrayList;
 
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.R;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.API;
-import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioList2;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioListHistorico;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Cons;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.SyncService;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.ThreadSharedContent;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity
     private String user_email;
     private String user_name;
     private String current_database_location;
+    private String current_ronda_id;
 
     private Thread thread_timer = null;
     private Thread thread_online = null;
@@ -57,7 +59,7 @@ public class MainActivity extends AppCompatActivity
     private String dialog_cur_path = null;
     private int dialog_checked_item = -1;
 
-    protected AdapterFormularioList2 adapterFormularioList = null;
+    protected AdapterFormularioListHistorico adapterFormularioList = null;
     private ArrayList<Formulario> arrFormulario = new ArrayList<>();
 
     public static boolean getStatusOnline()
@@ -86,6 +88,7 @@ public class MainActivity extends AppCompatActivity
         user_email = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Email);
         user_name = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Name);
         current_database_location = ((String) Util.loadFromSP(getApplicationContext(),String.class,Cons.Current_Database_Location));
+        current_ronda_id = ((String) Util.loadFromSP(getApplicationContext(),String.class,Cons.Current_Ronda_ID));
     }
 
     @Override
@@ -205,6 +208,14 @@ public class MainActivity extends AppCompatActivity
             thread_online = thread_shared.threadPing(this);
             thread_online.start();
         }
+        if(current_ronda_id == null)
+        {
+            ((Button) findViewById(R.id.btnNewRonda)).setText(("Nueva Ronda"));
+        }
+        else
+        {
+            ((Button) findViewById(R.id.btnNewRonda)).setText(("Continuar Ronda"));
+        }
         loadFormularios();
     }
 
@@ -241,9 +252,6 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_bd) {
             selectDBLocation(false,this);
-        } else if (id == R.id.nav_alert) {
-            Intent act = new Intent(this,AlertaConfigActivity.class);
-            startActivity(act);
         } else if (id == R.id.nav_perfil) {
             Intent act = new Intent(this,PerfilActivity.class);
             startActivity(act);
@@ -456,7 +464,7 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void run() {
                                 if(adapterFormularioList == null) {
-                                    adapterFormularioList = new AdapterFormularioList2(getApplicationContext(), arrFormulario);
+                                    adapterFormularioList = new AdapterFormularioListHistorico(getApplicationContext(), arrFormulario);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setNestedScrollingEnabled(false);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setAdapter(adapterFormularioList);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setLayoutManager(

@@ -14,24 +14,22 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.R;
-import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity.FormularioFillActivity;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity.FormularioHistoryActivity;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.Formulario;
 
-public class AdapterFormularioList extends RecyclerView.Adapter<AdapterFormularioList.CustomViewHolder> {
+public class AdapterFormularioListHistorico extends RecyclerView.Adapter<AdapterFormularioListHistorico.CustomViewHolder> {
     private ArrayList<Formulario> arrFormularios;
     private Context context;
-    private Long currentRondaID;
 
-    public AdapterFormularioList(Context context, ArrayList<Formulario> arrFormularios, Long currentRondaID) {
+    public AdapterFormularioListHistorico(Context context, ArrayList<Formulario> arrFormularios) {
         this.arrFormularios = arrFormularios;
-        this.currentRondaID = currentRondaID;
         this.context = context;
     }
 
     @NonNull
     @Override
     public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_formulario, viewGroup,
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_formulario_2, viewGroup,
                 false);
         return new CustomViewHolder(view);
     }
@@ -41,12 +39,11 @@ public class AdapterFormularioList extends RecyclerView.Adapter<AdapterFormulari
     public void onBindViewHolder(@NonNull CustomViewHolder customViewHolder, int i) {
         final Formulario formulario = arrFormularios.get(i);
         customViewHolder.formName.setText(formulario.nombre);
-        customViewHolder.formButton.setOnClickListener(new View.OnClickListener() {
+        customViewHolder.formButton2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Util.saveToSP(context,formulario,Cons.Current_Form);
-                Util.saveToSP(context, currentRondaID,Cons.Current_Ronda_ID);
-                Intent i = new Intent(context,FormularioFillActivity.class);
+                Intent i = new Intent(context,FormularioHistoryActivity.class);
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(i);
             }
@@ -60,12 +57,12 @@ public class AdapterFormularioList extends RecyclerView.Adapter<AdapterFormulari
 
     class CustomViewHolder extends RecyclerView.ViewHolder {
         TextView formName;
-        ImageView formButton;
+        ImageView formButton2;
 
         CustomViewHolder(View view) {
             super(view);
             this.formName = view.findViewById(R.id.formName);
-            this.formButton = view.findViewById(R.id.formButton);
+            this.formButton2 = view.findViewById(R.id.formButton2);
         }
     }
 }

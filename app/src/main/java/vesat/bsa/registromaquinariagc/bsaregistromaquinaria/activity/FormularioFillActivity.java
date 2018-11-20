@@ -1,9 +1,7 @@
 package vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity;
 
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.v7.app.AlertDialog;
@@ -45,14 +43,11 @@ public class FormularioFillActivity extends AppCompatActivity {
 
     private String fecha;
     private Formulario current_form = null;
-    private Long current_ronda_id = null;
+    private String current_ronda_id = null;
     private ArrayList<FormSection> sections = new ArrayList<>();
 
     private boolean saveLock = false;
     private int nivelEnvioAlerta = 0;
-    private String alertas1 = null;
-    private String alertas2 = null;
-    private String alertas3 = null;
     private String alert_body = "";
 
     private Double lastLatitud = null;
@@ -69,13 +64,10 @@ public class FormularioFillActivity extends AppCompatActivity {
         setTitle("");
         fecha = Util.getFechaFullActual();
         ((EditText) findViewById(R.id.currentHoraRegistro)).setText(fecha);
-        current_ronda_id = (Long) Util.loadFromSP(this,Long.class,Cons.Current_Ronda_ID);
+        current_ronda_id = (String) Util.loadFromSP(this,String.class,Cons.Current_Ronda_ID);
         current_form = (Formulario) Util.loadFromSP(this,Formulario.class,Cons.Current_Form);
         if(current_form != null)
         {
-            alertas1 = (String) Util.loadFromSP(this,String.class,Cons.Email_Alertas_1);
-            alertas2 = (String) Util.loadFromSP(this,String.class,Cons.Email_Alertas_2);
-            alertas3 = (String) Util.loadFromSP(this,String.class,Cons.Email_Alertas_3);
             googleClient = LocationServices.getFusedLocationProviderClient(this);
             loadFormulario();
         }
@@ -134,9 +126,7 @@ public class FormularioFillActivity extends AppCompatActivity {
             case R.id.btnAlerta:
             {
                 CharSequence[] options_cs = {"No Enviar Alerta",
-                        "Nivel 1: " + (alertas1 != null && alertas1.length() > 0 ? alertas1 : "(No Configurado)"),
-                        "Nivel 2: " + (alertas2 != null && alertas2.length() > 0 ? alertas2 : "(No Configurado)"),
-                        "Nivel 3: " + (alertas3 != null && alertas3.length() > 0 ? alertas3 : "(No Configurado)")};
+                        "Nivel Emergencia Bajo","Nivel Emergencia Medio","Nivel Emergencia Alto"};
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Seleccione Alerta");
                 builder.setItems(options_cs, new DialogInterface.OnClickListener() {
@@ -176,7 +166,7 @@ public class FormularioFillActivity extends AppCompatActivity {
                     LocationRequest locquest = LocationRequest.create();
                     locquest.setFastestInterval(3000);
                     googleClient.requestLocationUpdates(locquest, googleLocationCallback, Looper.myLooper());
-                } catch (SecurityException e){}
+                } catch (SecurityException ignored){}
             }
             String PictureLoad = (String) Util.loadFromSP(getApplicationContext(), String.class, Cons.CAMERA_PictureLoad);
             if (PictureLoad != null && PictureLoad.equalsIgnoreCase("true")) {
@@ -294,105 +284,96 @@ public class FormularioFillActivity extends AppCompatActivity {
                 boolean pass = false;
                 boolean requireds = true;
                 try {
-                    int formularios = Integer.parseInt(current_form.id);
-                    int usuarios = Integer.parseInt(
-                            (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_ID));
-                    int alerta_nivel = nivelEnvioAlerta;
-                    Double latitud = lastLatitud;
-                    Double longitud = lastLongitud;
-                    JSONArray datos = new JSONArray();
-                    String current_user = ((String)
-                            Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Name)) + " [" +
-                            ((String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Email)) + "]";
-                    alert_body = "Enviado Por: " + current_user + "\n";
-                    alert_body += "Formulario: " + current_form.nombre + " [" + current_form.id+ "]\n\nValores:\n";
-                    check_data: for(FormSection section : sections)
-                    {
-                        for(FormField field : section.fields)
-                        {
-                            if ((field.type.equalsIgnoreCase("Photo") ||
-                                    field.type.equalsIgnoreCase("Signature"))) {
-                                String picture_bytes = (String) Util.loadFromSP(getApplicationContext()
-                                        , String.class, Cons.CAMERA_FormFieldViewHolderPrefix + field.id);
-                                if (picture_bytes != null && picture_bytes.length() > 0) {
-                                    JSONObject obj = new JSONObject();
-                                    obj.put("id",field.id);
-                                    obj.put("type",field.type);
-                                    obj.put("title",field.title);
-                                    obj.put("value",picture_bytes);
-                                    datos.put(obj);
-                                }
-                                else if(field.required.equalsIgnoreCase("true"))
-                                {
-                                    requireds = false;
-                                    break check_data;
-                                }
-                            } else if (field.type.equalsIgnoreCase("Combo")) {
-                                if (field.view_aux != null && field.view_aux.length() > 0 &&
-                                        !field.view_aux.contentEquals(Cons.Combo_Not_Selected)) {
-                                    JSONObject obj = new JSONObject();
-                                    obj.put("id",field.id);
-                                    obj.put("type",field.type);
-                                    obj.put("title",field.title);
-                                    obj.put("value",field.view_aux);
-                                    datos.put(obj);
-                                    alert_body += field.title + ": " + field.view_aux + "\n";
-                                }
-                                else if(field.required.equalsIgnoreCase("true"))
-                                {
-                                    requireds = false;
-                                    break check_data;
-                                }
-                            } else if (field.type.equalsIgnoreCase("Boolean")) {
-                                if (field.view_aux != null && field.view_aux.length() > 0) {
-                                    JSONObject obj = new JSONObject();
-                                    obj.put("id",field.id);
-                                    obj.put("type",field.type);
-                                    obj.put("title",field.title);
-                                    obj.put("value",field.view_aux);
-                                    datos.put(obj);
-                                    alert_body += field.title + ": " +
-                                            (field.view_aux.equalsIgnoreCase("1") ? "Si" : "No") + "\n";
-                                }
-                                else if(field.required.equalsIgnoreCase("true"))
-                                {
-                                    requireds = false;
-                                    break check_data;
-                                }
-                            } else if(field.type.equalsIgnoreCase("Label") ||
-                                    field.type.equalsIgnoreCase("Image")) {
-                                // No hacer nada
-                            } else /* Text, Textarea, Number, Fallback */ {
-                                String value_edit_text = ((EditText) field.view_value).getText().toString().trim();
-                                if (value_edit_text.length() > 0) {
-                                    JSONObject obj = new JSONObject();
-                                    obj.put("id",field.id);
-                                    obj.put("type",field.type);
-                                    obj.put("title",field.title);
-                                    obj.put("value",value_edit_text);
-                                    datos.put(obj);
-                                    alert_body += field.title + ": " + value_edit_text + "\n";
-                                }
-                                else if(field.required.equalsIgnoreCase("true"))
-                                {
-                                    requireds = false;
-                                    break check_data;
+                    String s_usuarios = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_ID);
+                    if(s_usuarios != null) {
+                        int formularios = Integer.parseInt(current_form.id);
+                        int usuarios = Integer.parseInt(s_usuarios);
+                        int alerta_nivel = nivelEnvioAlerta;
+                        Double latitud = lastLatitud;
+                        Double longitud = lastLongitud;
+                        JSONArray datos = new JSONArray();
+                        String current_user = ((String)
+                                Util.loadFromSP(getApplicationContext(), String.class, Cons.User_Name)) + " [" +
+                                ((String) Util.loadFromSP(getApplicationContext(), String.class, Cons.User_Email)) + "]";
+                        alert_body = "Enviado Por: " + current_user + "\n";
+                        alert_body += "Formulario: " + current_form.nombre + " [" + current_form.id + "]\n\nValores:\n";
+                        check_data:
+                        for (FormSection section : sections) {
+                            for (FormField field : section.fields) {
+                                if ((field.type.equalsIgnoreCase("Photo") ||
+                                        field.type.equalsIgnoreCase("Signature"))) {
+                                    String picture_bytes = (String) Util.loadFromSP(getApplicationContext()
+                                            , String.class, Cons.CAMERA_FormFieldViewHolderPrefix + field.id);
+                                    if (picture_bytes != null && picture_bytes.length() > 0) {
+                                        JSONObject obj = new JSONObject();
+                                        obj.put("id", field.id);
+                                        obj.put("type", field.type);
+                                        obj.put("title", field.title);
+                                        obj.put("value", picture_bytes);
+                                        datos.put(obj);
+                                    } else if (field.required.equalsIgnoreCase("true")) {
+                                        requireds = false;
+                                        break check_data;
+                                    }
+                                } else if (field.type.equalsIgnoreCase("Combo")) {
+                                    if (field.view_aux != null && field.view_aux.length() > 0 &&
+                                            !field.view_aux.contentEquals(Cons.Combo_Not_Selected)) {
+                                        JSONObject obj = new JSONObject();
+                                        obj.put("id", field.id);
+                                        obj.put("type", field.type);
+                                        obj.put("title", field.title);
+                                        obj.put("value", field.view_aux);
+                                        datos.put(obj);
+                                        alert_body += field.title + ": " + field.view_aux + "\n";
+                                    } else if (field.required.equalsIgnoreCase("true")) {
+                                        requireds = false;
+                                        break check_data;
+                                    }
+                                } else if (field.type.equalsIgnoreCase("Boolean")) {
+                                    if (field.view_aux != null && field.view_aux.length() > 0) {
+                                        JSONObject obj = new JSONObject();
+                                        obj.put("id", field.id);
+                                        obj.put("type", field.type);
+                                        obj.put("title", field.title);
+                                        obj.put("value", field.view_aux);
+                                        datos.put(obj);
+                                        alert_body += field.title + ": " +
+                                                (field.view_aux.equalsIgnoreCase("1") ? "Si" : "No") + "\n";
+                                    } else if (field.required.equalsIgnoreCase("true")) {
+                                        requireds = false;
+                                        break check_data;
+                                    }
+                                } else if (field.type.equalsIgnoreCase("Label") ||
+                                        field.type.equalsIgnoreCase("Image")) {
+                                    // No hacer nada
+                                } else /* Text, Textarea, Number, Fallback */ {
+                                    String value_edit_text = ((EditText) field.view_value).getText().toString().trim();
+                                    if (value_edit_text.length() > 0) {
+                                        JSONObject obj = new JSONObject();
+                                        obj.put("id", field.id);
+                                        obj.put("type", field.type);
+                                        obj.put("title", field.title);
+                                        obj.put("value", value_edit_text);
+                                        datos.put(obj);
+                                        alert_body += field.title + ": " + value_edit_text + "\n";
+                                    } else if (field.required.equalsIgnoreCase("true")) {
+                                        requireds = false;
+                                        break check_data;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if(requireds) {
-                        DBHelper db = new DBHelper(getApplicationContext());
-                        if (db.addRegistro(formularios, usuarios, fecha,
-                                Base64.encodeToString(datos.toString().getBytes(),Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)
-                                        , alerta_nivel, latitud, longitud, current_ronda_id) > 0) {
+                        if (requireds) {
+                            DBHelper db = new DBHelper(getApplicationContext());
+                            if (db.addNewRegistro(formularios, usuarios, fecha,
+                                    Base64.encodeToString(datos.toString().getBytes(), Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)
+                                    , alerta_nivel, latitud, longitud, current_ronda_id) > 0) {
+                                pass = true;
+                            }
+                            db.close();
+                        } else {
                             pass = true;
                         }
-                        db.close();
-                    }
-                    else
-                    {
-                        pass = true;
                     }
                 }
                 catch (NullPointerException | NumberFormatException | JSONException ignored){}
@@ -406,26 +387,6 @@ public class FormularioFillActivity extends AppCompatActivity {
                                 Toast.makeText(getApplicationContext(), "Guardado Correctamente", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(getApplicationContext(), "Error Al Guardar", Toast.LENGTH_SHORT).show();
-                            }
-                            switch (nivelEnvioAlerta) {
-                                case 1: {
-                                    if (alertas1 != null && alertas1.length() > 0) {
-                                        sendAlerta(alertas1);
-                                    }
-                                }
-                                break;
-                                case 2: {
-                                    if (alertas2 != null && alertas2.length() > 0) {
-                                        sendAlerta(alertas2);
-                                    }
-                                }
-                                break;
-                                case 3: {
-                                    if (alertas3 != null && alertas3.length() > 0) {
-                                        sendAlerta(alertas3);
-                                    }
-                                }
-                                break;
                             }
                             saveLock = false;
                             findViewById(R.id.auxProgressBar).setVisibility(View.GONE);
@@ -446,14 +407,5 @@ public class FormularioFillActivity extends AppCompatActivity {
             }
         });
         net.start();
-    }
-
-    private void sendAlerta(String email_list)
-    {
-        Intent testIntent = new Intent(Intent.ACTION_VIEW);
-        Uri data = Uri.parse("mailto:?subject="
-                + "BSA Registro Maquinaria" + "&body=" + alert_body + "&to=" + email_list);
-        testIntent.setData(data);
-        startActivity(testIntent);
     }
 }

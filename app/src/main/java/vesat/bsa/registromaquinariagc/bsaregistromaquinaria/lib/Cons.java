@@ -10,10 +10,6 @@ public class Cons {
     public final static String User_Pass = "User_Pass";
     public final static String Last_Online_Login_Succesfully = "Last_Online_Login_Succesfully";
 
-    public final static String Email_Alertas_1 = "Email_Alertas_1";
-    public final static String Email_Alertas_2 = "Email_Alertas_2";
-    public final static String Email_Alertas_3 = "Email_Alertas_3";
-
     public final static String Current_Form = "Current_Form";
     public final static String Current_FormElem = "Current_FormElem";
     public final static String Current_Ronda_ID = "Current_Ronda_ID";

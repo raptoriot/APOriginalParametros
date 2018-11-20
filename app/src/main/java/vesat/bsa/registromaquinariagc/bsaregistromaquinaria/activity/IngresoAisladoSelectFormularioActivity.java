@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.R;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.API;
-import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioList;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioListIngresoAislado;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Cons;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.ThreadSharedContent;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Util;
@@ -24,6 +24,7 @@ import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.Formulario;
 
 public class IngresoAisladoSelectFormularioActivity extends AppCompatActivity {
 
+    public static IngresoAisladoSelectFormularioActivity self = null;
     private String device_id;
     private String device_register_id;
     private String user_id;
@@ -34,13 +35,14 @@ public class IngresoAisladoSelectFormularioActivity extends AppCompatActivity {
     private Thread thread_online = null;
     private ThreadSharedContent thread_shared = new ThreadSharedContent();
 
-    protected AdapterFormularioList adapterFormularioList = null;
+    protected AdapterFormularioListIngresoAislado adapterFormularioListIngresoAislado = null;
     private ArrayList<Formulario> arrFormulario = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ingreso_aislado_select_formulario);
+        self = this;
         loadVars();
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -57,9 +59,16 @@ public class IngresoAisladoSelectFormularioActivity extends AppCompatActivity {
         user_email = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.User_Email);
     }
 
+    public void onDestroy()
+    {
+        self = null;
+        super.onDestroy();
+    }
+
     protected void onResume()
     {
         super.onResume();
+        self = this;
         loadVars();
         if(thread_timer == null) {
             thread_timer = thread_shared.threadTimer(this);
@@ -97,7 +106,7 @@ public class IngresoAisladoSelectFormularioActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    if (adapterFormularioList != null) {
+                    if (adapterFormularioListIngresoAislado != null) {
                         arrFormulario.clear();
                     }
                     String ans_raw = API.readWs(API.GET_FORMULARIOS_LIST,user_id,user_pass,device_register_id,
@@ -122,15 +131,15 @@ public class IngresoAisladoSelectFormularioActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if(adapterFormularioList == null) {
-                                    adapterFormularioList = new AdapterFormularioList(getApplicationContext(),
-                                            arrFormulario, null);
+                                if(adapterFormularioListIngresoAislado == null) {
+                                    adapterFormularioListIngresoAislado = new AdapterFormularioListIngresoAislado(getApplicationContext(),
+                                            arrFormulario);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setNestedScrollingEnabled(false);
-                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setAdapter(adapterFormularioList);
+                                    ((RecyclerView) findViewById(R.id.mainFormListView)).setAdapter(adapterFormularioListIngresoAislado);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setLayoutManager(
                                             new LinearLayoutManager(getApplicationContext()));
                                 }
-                                adapterFormularioList.notifyDataSetChanged();
+                                adapterFormularioListIngresoAislado.notifyDataSetChanged();
                             }
                         });
                     } catch (NullPointerException ignored) {
@@ -151,5 +160,28 @@ public class IngresoAisladoSelectFormularioActivity extends AppCompatActivity {
             }
         });
         net.start();
+    }
+
+    public static void SyncMessage(final String msg)
+    {
+        try {
+            if (self != null) {
+                self.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (msg == null) {
+                                self.findViewById(R.id.sync_layout).setVisibility(View.GONE);
+                            } else {
+                                ((TextView) self.findViewById(R.id.sync_msg)).setText(msg);
+                                self.findViewById(R.id.sync_layout).setVisibility(View.VISIBLE);
+                            }
+                        }
+                        catch (NullPointerException ignored){}
+                    }
+                });
+            }
+        }
+        catch (NullPointerException ignored){}
     }
 }
