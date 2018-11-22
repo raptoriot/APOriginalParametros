@@ -53,7 +53,7 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_ingreso_aislado_select_formulario);
+        setContentView(R.layout.activity_ronda_select_formulario);
         self = this;
         loadVars();
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -201,13 +201,20 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
         try {
             if (current_ronda_id == null) {
                 DBHelper db = new DBHelper(this);
-                current_ronda_id = ""+db.addNewRonda(Integer.parseInt(user_id), Util.getFechaFullActual(),
+                String t_fecha = Util.getFechaFullActual();
+                Util.saveToSP(this,t_fecha,Cons.Current_Ronda_Fecha);
+                current_ronda_id = ""+db.addNewRonda(Integer.parseInt(user_id), t_fecha,
                         device_register_id);
                 Util.saveToSP(this,current_ronda_id,Cons.Current_Ronda_ID);
                 db.close();
             }
         }
         catch (NumberFormatException ignored){}
+        String r_fecha = (String) Util.loadFromSP(this,String.class,Cons.Current_Ronda_Fecha);
+        if(r_fecha != null)
+        {
+            ((TextView) findViewById(R.id.tag_horaronda)).setText(("Ronda: " + r_fecha));
+        }
     }
     private void loadFormularios()
     {

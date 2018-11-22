@@ -74,6 +74,13 @@
                         android:gravity="center_horizontal"
                         android:text="@string/hora_empty"/>
 
+                    <TextView
+                        android:id="@+id/tag_horaronda"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:text="@string/fecha_ronda"/>
+
                 </LinearLayout>
 
             </LinearLayout>

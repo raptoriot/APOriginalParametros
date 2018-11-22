@@ -13,6 +13,7 @@ public class Cons {
     public final static String Current_Form = "Current_Form";
     public final static String Current_FormElem = "Current_FormElem";
     public final static String Current_Ronda_ID = "Current_Ronda_ID";
+    public final static String Current_Ronda_Fecha = "Current_Ronda_Fecha";
 
     public final static String Current_Database_Location = "Current_Database_Location";
     public static final String Database_Name = "DatosRegistroMaquinaria.db";

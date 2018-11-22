@@ -48,4 +48,5 @@
     <string name="ingreso_aislado">Ingreso Aislado</string>
     <string name="hora_de_registro">Hora de Registro</string>
     <string name="justificaci_n">Justificación</string>
+    <string name="fecha_ronda">Ronda: --:--:--</string>
 </resources>
