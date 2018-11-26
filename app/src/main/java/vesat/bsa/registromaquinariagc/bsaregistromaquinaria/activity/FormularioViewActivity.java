@@ -95,6 +95,22 @@ public class FormularioViewActivity extends AppCompatActivity {
         Cursor cur = db.getRegistroById(current_form_elem);
         if(cur.moveToNext())
         {
+            int nivel_alerta = cur.getInt(cur.getColumnIndex("alerta_nivel"));
+            switch (nivel_alerta)
+            {
+                case 1: ((ImageView) findViewById(R.id.btnAlerta)).
+                        setImageDrawable(getResources().getDrawable(R.drawable.amarillo));
+                    break;
+                case 2: ((ImageView) findViewById(R.id.btnAlerta)).
+                        setImageDrawable(getResources().getDrawable(R.drawable.naranjo));
+                    break;
+                case 3: ((ImageView) findViewById(R.id.btnAlerta)).
+                        setImageDrawable(getResources().getDrawable(R.drawable.rojo));
+                    break;
+                default: ((ImageView) findViewById(R.id.btnAlerta)).
+                        setImageDrawable(getResources().getDrawable(R.drawable.gris));
+                    break;
+            }
             ((EditText) findViewById(R.id.currentHoraRegistro)).setText(cur.getString(cur.getColumnIndex("fecha")));
             try {
                 JSONArray datos = new JSONArray(

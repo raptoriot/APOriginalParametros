@@ -82,14 +82,21 @@ public class FormularioHistoryActivity extends AppCompatActivity {
             header_fecha.setText(("   Fecha   "));
             header_fecha.setBackgroundColor(Color.parseColor("#ffffff"));
             header_fecha.setGravity(Gravity.CENTER_HORIZONTAL);
+            TextView header_alerta = new TextView(this);
+            header_alerta.setTypeface(null,Typeface.BOLD);
+            header_alerta.setPadding(1,1,1,1);
+            header_alerta.setText(("   Alerta   "));
+            header_alerta.setBackgroundColor(Color.parseColor("#ffffff"));
+            header_alerta.setGravity(Gravity.CENTER_HORIZONTAL);
             TextView h_button_detail = new TextView(this);
             h_button_detail.setTypeface(null,Typeface.BOLD);
             h_button_detail.setPadding(1,1,1,1);
-            h_button_detail.setText("   Detalle   ");
+            h_button_detail.setText(("   Detalle   "));
             h_button_detail.setBackgroundColor(Color.parseColor("#ffffff"));
             h_button_detail.setGravity(Gravity.CENTER_HORIZONTAL);
             header.addView(header_id);
             header.addView(header_fecha);
+            header.addView(header_alerta);
             for(String p_field : primary_fields)
             {
                 keep_loop: for(FormSection section : sections) {
@@ -132,6 +139,15 @@ public class FormularioHistoryActivity extends AppCompatActivity {
                 t_header_fecha.setText((" " + cur.getString(cur.getColumnIndex("fecha")) + " "));
                 t_header_fecha.setBackgroundColor(Color.parseColor("#ffffff"));
                 t_header_fecha.setGravity(Gravity.CENTER_HORIZONTAL);
+                ImageView t_header_alerta = new ImageView(this);
+                t_header_alerta.setBackgroundColor(Color.parseColor("#ffffff"));
+                switch (cur.getInt(cur.getColumnIndex("alerta_nivel")))
+                {
+                    case 1: t_header_alerta.setImageDrawable(ContextCompat.getDrawable(this,R.drawable.amarillo_2)); break;
+                    case 2: t_header_alerta.setImageDrawable(ContextCompat.getDrawable(this,R.drawable.naranjo_2)); break;
+                    case 3: t_header_alerta.setImageDrawable(ContextCompat.getDrawable(this,R.drawable.rojo_2)); break;
+                    default: t_header_alerta.setImageDrawable(ContextCompat.getDrawable(this,R.drawable.gris_2)); break;
+                }
                 ImageView button_detail = new ImageView(this);
                 button_detail.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_detail_check));
                 button_detail.setBackgroundColor(Color.parseColor("#ffffff"));
@@ -147,6 +163,7 @@ public class FormularioHistoryActivity extends AppCompatActivity {
                 });
                 t_header.addView(t_header_id);
                 t_header.addView(t_header_fecha);
+                t_header.addView(t_header_alerta);
                 for(String p_field : primary_fields)
                 {
                     boolean found = false;

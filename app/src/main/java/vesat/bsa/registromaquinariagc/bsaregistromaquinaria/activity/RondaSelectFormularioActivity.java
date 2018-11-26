@@ -5,7 +5,7 @@ import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputFilter;
@@ -55,6 +55,11 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ronda_select_formulario);
         self = this;
+        String last_msg = getIntent().getStringExtra("last_msg");
+        if(last_msg != null)
+        {
+            SyncMessage(last_msg);
+        }
         loadVars();
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -233,9 +238,9 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
                     if(ans_raw != null && ans_raw.length() > 0) {
                         JSONObject ans = new JSONObject(ans_raw);
                         String status = Util.getJSONStringOrNull(ans, "status");
-                        device_register_id = Util.getJSONStringOrNull(ans, "device_reg_id");
                         if (status != null && status.contentEquals("ok") && ans.has("formularios"))
                         {
+                            Util.saveToSP(getApplicationContext(),ans_raw,Cons.QueryCache_FormList);
                             JSONArray jformularios = ans.getJSONArray("formularios");
                             for(int x = 0;x < jformularios.length();x++)
                             {
@@ -243,6 +248,23 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
                                 Formulario f = new Formulario();
                                 f.loadFromJSON(jform);
                                 arrFormulario.add(f);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        String ans_cache = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.QueryCache_FormList);
+                        if(ans_cache != null && ans_cache.length() > 0) {
+                            JSONObject ans = new JSONObject(ans_cache);
+                            String status = Util.getJSONStringOrNull(ans, "status");
+                            if (status != null && status.contentEquals("ok") && ans.has("formularios")) {
+                                JSONArray jformularios = ans.getJSONArray("formularios");
+                                for (int x = 0; x < jformularios.length(); x++) {
+                                    JSONObject jform = jformularios.getJSONObject(x);
+                                    Formulario f = new Formulario();
+                                    f.loadFromJSON(jform);
+                                    arrFormulario.add(f);
+                                }
                             }
                         }
                     }
@@ -256,7 +278,7 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setNestedScrollingEnabled(false);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setAdapter(adapterFormularioListRonda);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setLayoutManager(
-                                            new LinearLayoutManager(getApplicationContext()));
+                                            new GridLayoutManager(self,2));
                                 }
                                 adapterFormularioListRonda.notifyDataSetChanged();
                             }

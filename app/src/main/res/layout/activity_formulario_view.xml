@@ -56,4 +56,30 @@
 
     </ScrollView>
 
+    <LinearLayout
+        android:id="@+id/navigationMenu"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:padding="8sp"
+        android:orientation="horizontal"
+        android:background="#ed8a34"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <TextView
+            android:id="@+id/txtbtnAlerta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nivel_de_alerta"/>
+
+        <ImageView
+            android:id="@+id/btnAlerta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            android:src="@drawable/gris"/>
+
+    </LinearLayout>
+
 </LinearLayout>

@@ -49,4 +49,10 @@
     <string name="hora_de_registro">Hora de Registro</string>
     <string name="justificaci_n">Justificación</string>
     <string name="fecha_ronda">Ronda: --:--:--</string>
+    <string name="nivel_de_alerta">Nivel de Alerta:</string>
+    <string name="default_r1">---</string>
+    <string name="default_r2">----/--/-- --:--:--</string>
+    <string name="nro">Nro.</string>
+    <string name="fecha_ronda_2">Fecha Ronda</string>
+    <string name="fecha_turno">Fecha Turno</string>
 </resources>

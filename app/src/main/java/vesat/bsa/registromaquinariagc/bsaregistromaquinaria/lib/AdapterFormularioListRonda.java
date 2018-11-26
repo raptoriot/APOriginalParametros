@@ -44,6 +44,7 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
     public void onBindViewHolder(@NonNull CustomViewHolder customViewHolder, int i) {
         final Formulario formulario = arrFormularios.get(i);
         customViewHolder.formName.setText(formulario.nombre);
+        customViewHolder.formAlertStatus.setVisibility(View.VISIBLE);
         DBHelper db = new DBHelper(context);
         try {
             if (db.isFormSubmittedForRonda(currentRondaID
@@ -54,6 +55,21 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
             else
             {
                 customViewHolder.llayoutback.setBackgroundColor(Color.parseColor("#ff7777"));
+            }
+            switch(db.getFormNivelAlertaForRonda(currentRondaID,Long.parseLong(formulario.id)))
+            {
+                case 1:
+                    customViewHolder.formAlertStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.amarillo));
+                break;
+                case 2:
+                    customViewHolder.formAlertStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.naranjo));
+                break;
+                case 3:
+                    customViewHolder.formAlertStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.rojo));
+                break;
+                default:
+                    customViewHolder.formAlertStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.gris));
+                break;
             }
         }
         catch (NumberFormatException ignored){}
@@ -92,12 +108,14 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
     class CustomViewHolder extends RecyclerView.ViewHolder {
         TextView formName;
         ImageView formButton;
+        ImageView formAlertStatus;
         LinearLayout llayoutback;
 
         CustomViewHolder(View view) {
             super(view);
             this.formName = view.findViewById(R.id.formName);
             this.formButton = view.findViewById(R.id.formButton);
+            this.formAlertStatus = view.findViewById(R.id.formAlertStatus);
             this.llayoutback = view.findViewById(R.id.llayoutback);
         }
     }

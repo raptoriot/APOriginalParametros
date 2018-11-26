@@ -45,12 +45,14 @@ public class SyncService extends Service {
                                                         + nesRondas.getCount());
                                                 JSONObject json = new JSONObject();
                                                 String this_sync_id = nesRondas.getString(nesRondas.getColumnIndex("uuid"));
+                                                String synced_status = nesRondas.getString(nesRondas.getColumnIndex("synced"));
                                                 json.put("android_bd_id", nesRondas.getString(nesRondas.getColumnIndex("_ID")));
                                                 json.put("dispositivos", device_register_id);
                                                 json.put("usuarios", nesRondas.getString(nesRondas.getColumnIndex("usuarios")));
                                                 json.put("fecha", nesRondas.getString(nesRondas.getColumnIndex("fecha")));
                                                 json.put("comentario", nesRondas.getString(nesRondas.getColumnIndex("comentario")));
                                                 json.put("uuid", nesRondas.getString(nesRondas.getColumnIndex("uuid")));
+                                                json.put("synced", synced_status);
                                                 boolean pass = false;
                                                 String ans_raw = API.readWs(API.SYNC_RONDAS_DATA_FROM_DEVICE, user_id, user_pass,
                                                         device_register_id, device_id, json.toString());
@@ -59,7 +61,14 @@ public class SyncService extends Service {
                                                     String status = Util.getJSONStringOrNull(ans, "status");
                                                     if (status != null && status.contentEquals("ok")) {
                                                         pass = true;
-                                                        db.markRondaAsSynced(this_sync_id);
+                                                        if(synced_status.contentEquals("0"))
+                                                        {
+                                                            db.markRondaAsSynced(this_sync_id);
+                                                        }
+                                                        else
+                                                        {
+                                                            db.markRondaAsUpdated(this_sync_id);
+                                                        }
                                                     }
                                                 }
                                                 fail2 = !pass;
@@ -124,13 +133,13 @@ public class SyncService extends Service {
                                     else if (sync_correct_reg || sync_correct_ron) {
                                         SyncMessage("Sincronización Incompleta.");
                                         Thread.sleep(5000);
-                                        SyncMessage(null);
+                                        //SyncMessage(null);
                                     }
                                     else if(nesRegistros.getCount() > 0 || nesRondas.getCount() > 0)
                                     {
                                         SyncMessage("Error de Sincronización.");
                                         Thread.sleep(5000);
-                                        SyncMessage(null);
+                                        //SyncMessage(null);
                                     }
                                     else
                                     {

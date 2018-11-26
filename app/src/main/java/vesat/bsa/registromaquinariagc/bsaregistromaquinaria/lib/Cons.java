@@ -24,6 +24,14 @@ public class Cons {
     public final static String CAMERA_PictureLoad = "CAMERA_PictureLoad";
     public final static String CAMERA_FormFieldViewHolderPrefix = "CAMERA_FormFieldViewHolder_";
 
+    public final static String QueryCache_FormList = "QueryCache_FormList";
+
+    public final static String Turno1_Inicio = "Turno1_Inicio";
+    public final static String Turno1_Fin = "Turno1_Fin";
+    public final static String Turno2_Inicio = "Turno2_Inicio";
+    public final static String Turno2_Fin = "Turno2_Fin";
+    public final static String Turno2_Overlap = "Turno2_Overlap";
+
     public final static String Combo_Not_Selected = "---";
 
 }

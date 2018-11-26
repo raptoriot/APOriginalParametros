@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.Formulario;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.RondaElem;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.TurnoElem;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -72,10 +74,12 @@ public class DBHelper extends SQLiteOpenHelper {
             }
             if(rondas_uuid != null) {
                 values.put("rondas_uuid", rondas_uuid);
-                values.put("enable_sync", "0");
+                values.put("enable_sync", "1"); // Siempre usar 1, en una version temprana se uso 0 para esperar
+                                                // a que se completara la ronda
             } else {
                 values.putNull("rondas_uuid");
-                values.put("enable_sync", "1");
+                values.put("enable_sync", "1"); // Siempre usar 1, en una version temprana se uso 0 para esperar
+                                                // a que se completara la ronda
             }
             values.put("synced","0");
             SQLiteDatabase db = getWritableDatabase();
@@ -130,7 +134,7 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public Cursor getRondasSyncNext() {
-        String selection = "synced = '0' AND cerrada = '1'";
+        String selection = "(synced = '0') OR (synced = '1' AND cerrada = '1')";
         return getReadableDatabase()
                 .query(
                         "rondas",
@@ -150,7 +154,6 @@ public class DBHelper extends SQLiteOpenHelper {
             cv.put("comentario", comentario);
         }
         getWritableDatabase().update("rondas",cv,"uuid = ?",new String[]{""+uuid});
-        enableSyncOnRegistrosOfRonda(uuid);
     }
 
     public boolean rondaIsSynced(String uuid)
@@ -159,7 +162,7 @@ public class DBHelper extends SQLiteOpenHelper {
         Cursor cur = getReadableDatabase().query(
                         "rondas",
                         null,
-                        "uuid = ? AND synced = '1'",
+                        "uuid = ? AND (synced = '1' OR synced = '2')",
                         new String[]{""+uuid},
                         null,
                         null,
@@ -173,17 +176,15 @@ public class DBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
-    private void enableSyncOnRegistrosOfRonda(String rondas_uuid)
-    {
-        ContentValues cv = new ContentValues();
-        cv.put("enable_sync","1");
-        getWritableDatabase().update("registros",cv,"rondas_uuid = ?",
-                new String[]{""+rondas_uuid});
-    }
-
     public void markRondaAsSynced(String uuid) {
         ContentValues cv = new ContentValues();
         cv.put("synced","1");
+        getWritableDatabase().update("rondas",cv,"uuid = ?",new String[]{""+uuid});
+    }
+
+    public void markRondaAsUpdated(String uuid) {
+        ContentValues cv = new ContentValues();
+        cv.put("synced","2");
         getWritableDatabase().update("rondas",cv,"uuid = ?",new String[]{""+uuid});
     }
 
@@ -221,6 +222,31 @@ public class DBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
+    public byte getFormNivelAlertaForRonda(String rondas_uuid,long form_id)
+    {
+        byte ret = 0;
+        Cursor cur = getReadableDatabase().query(
+                "registros",
+                null,
+                "rondas_uuid = ? AND formularios = ?",
+                new String[]{""+rondas_uuid, ""+form_id},
+                null,
+                null,
+                null,
+                "1");
+        if(cur.getCount() > 0)
+        {
+            try
+            {
+                cur.moveToFirst();
+                ret = Byte.parseByte(cur.getString(cur.getColumnIndex("alerta_nivel")));
+            }
+            catch (NumberFormatException ignored){}
+        }
+        cur.close();
+        return ret;
+    }
+
     public Cursor getAllRegistrosOfFormulario(int formulario_id) {
         return getReadableDatabase()
                 .query(
@@ -246,5 +272,69 @@ public class DBHelper extends SQLiteOpenHelper {
                         null,
                         null);
     }
+
+    public ArrayList<RondaElem> getLast5Rondas(Context context)
+    {
+        ArrayList<RondaElem> t_ronda = new ArrayList<>();
+        Cursor cur1 = getReadableDatabase().query(
+                "rondas",
+                null,
+                null,
+                null,
+                null,
+                null,
+                "_ID DESC",
+                "5");
+        if(cur1.getCount() > 0)
+        {
+            cur1.moveToFirst();
+            String fecha_5_rondas = cur1.getString(cur1.getColumnIndex("fecha"));
+            ArrayList<TurnoElem> t_elem = Util.getTurnosUntil(context,System.currentTimeMillis(),
+                    Util.fechaAMillis(fecha_5_rondas));
+            if(t_elem.size() > 0) {
+                ArrayList<RondaElem> aux_arr = new ArrayList<>();
+                String lower_date = t_elem.get(t_elem.size() - 1).date_init;
+                Cursor cur2 = getReadableDatabase().query( // Obtener todas las rondas
+                        // del turno de al menos la quinta mas antigua para el conteo
+                        "rondas",
+                        null,
+                        "fecha >= ?",
+                        new String[]{lower_date},
+                        null,
+                        null,
+                        "_ID ASC",
+                        null);
+                cur2.moveToFirst();
+                while(cur2.moveToNext())
+                {
+                    String ronda_fecha = cur2.getString(cur2.getColumnIndex("fecha"));
+                    boolean found = false;
+                    for(TurnoElem t : t_elem)
+                    {
+                        if(Util.dateOnTurno(ronda_fecha,t))
+                        {
+                            aux_arr.add(new RondaElem(ronda_fecha,t.date_init,t.counter));
+                            t.counter++;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(!found)
+                    {
+                        aux_arr.add(new RondaElem(ronda_fecha,null,null));
+                    }
+                }
+                cur2.close();
+                for(int x = aux_arr.size() - 1;t_ronda.size() < 5 && x >= 0;x--)
+                {
+                    t_ronda.add(aux_arr.get(x));
+                }
+            }
+        }
+        cur1.close();
+        return t_ronda;
+    }
+
+
 }
 

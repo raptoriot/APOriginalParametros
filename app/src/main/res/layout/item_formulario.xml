@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="50sp"
     android:orientation="vertical"
     android:background="#eeeeee"
     android:gravity="center_horizontal">
@@ -11,7 +11,7 @@
     <LinearLayout
         android:id="@+id/llayoutback"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48sp"
         android:orientation="horizontal">
 
         <TextView
@@ -24,14 +24,30 @@
             android:gravity="center_horizontal"
             android:text="@string/formulario"/>
 
-        <ImageView
-            android:id="@+id/formButton"
-            android:layout_marginLeft="12dp"
-            android:layout_marginRight="12dp"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_note_add_black_24dp"
-            tools:ignore="ContentDescription" />
+            android:layout_height="match_parent"
+            android:layout_marginLeft="12sp"
+            android:layout_marginRight="12sp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/formButton"
+                android:layout_width="24sp"
+                android:layout_height="24sp"
+                android:src="@drawable/ic_note_add_black_24dp"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/formAlertStatus"
+                android:visibility="gone"
+                android:layout_width="20sp"
+                android:layout_height="20sp"
+                android:src="@drawable/gris"/>
+
+        </LinearLayout>
+
 
     </LinearLayout>
 

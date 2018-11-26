@@ -41,7 +41,7 @@ public class API {
 
     public static String readWs(int query,String user,String hpass,String dev_reg_id,String dev_id,String extra) {
         if(extra == null){extra = "";}
-        String ret = null;
+        String ret;
         try {
             String auth = Util.getSha512("[" + Util.getFechaActual() + "]09gfiyi7382CRHZES");
             String urlParameters = "query="+query;
@@ -79,7 +79,7 @@ public class API {
           //  }
             //else
             //{
-            /*    URL ws_url = new URL(ws_location);
+                /*URL ws_url = new URL(ws_location);
                 HttpURLConnection conn = (HttpURLConnection) ws_url.openConnection();
                 conn.setRequestProperty("Authorization",getAuthHeader());
                 conn.setRequestMethod("POST");

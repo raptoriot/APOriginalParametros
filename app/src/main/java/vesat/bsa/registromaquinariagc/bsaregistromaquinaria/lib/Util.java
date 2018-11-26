@@ -29,8 +29,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.TurnoElem;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.WidthHeight;
 
 public class Util {
@@ -349,5 +352,86 @@ public class Util {
             ret = "-" + ret;
         }
         return ret;
+    }
+
+    public static long fechaAMillis(String objeto) {
+        Calendar fecha = new GregorianCalendar();
+        int year=Integer.parseInt(""+objeto.charAt(0)+objeto.charAt(1)+objeto.charAt(2)+objeto.charAt(3));
+        int mes =Integer.parseInt(""+objeto.charAt(5)+objeto.charAt(6));
+        int dia = Integer.parseInt("" +objeto.charAt(8)+objeto.charAt(9));
+        int hora =Integer.parseInt(""+objeto.charAt(11)+objeto.charAt(12));
+        int minuto = Integer.parseInt("" +objeto.charAt(14)+objeto.charAt(15));
+        int segundo = Integer.parseInt(""+objeto.charAt(17)+objeto.charAt(18));
+        fecha.set(year, mes - 1, dia, hora, minuto, segundo);
+        return millisFlat(fecha.getTimeInMillis());
+    }
+
+    public static String getFechaFormatMillis(String formato,long millis){
+        Date momento = new Date(millis);
+        SimpleDateFormat formateador = new SimpleDateFormat(formato);
+        return formateador.format(momento);
+    }
+
+    private static long millisFlat(long millis)
+    {
+        return (long)((double)millis/1000.0) * 1000; // Reducir precision a segundos ya que
+            // no todos los telefonos son exactos en este item
+    }
+
+    public static ArrayList<TurnoElem> getTurnosUntil(Context context,long init_date,long end_date)
+    {
+        String turno_1_inicio = (String) Util.loadFromSP(context,String.class,Cons.Turno1_Inicio);
+        String turno_1_fin = (String) Util.loadFromSP(context,String.class,Cons.Turno1_Fin);
+        String turno_2_inicio = (String) Util.loadFromSP(context,String.class,Cons.Turno2_Inicio);
+        String turno_2_fin = (String) Util.loadFromSP(context,String.class,Cons.Turno2_Fin);
+        String turno_2_overlap = (String) Util.loadFromSP(context,String.class,Cons.Turno2_Overlap);
+        if(turno_1_inicio == null){turno_1_inicio = "08:00:00";}
+        if(turno_1_fin == null){turno_1_fin = "19:59:59";}
+        if(turno_2_inicio == null){turno_2_inicio = "20:00:00";}
+        if(turno_2_fin == null){turno_2_fin = "07:59:59";}
+        if(turno_2_overlap == null){turno_2_overlap = "true";}
+        long day = fechaAMillis(getFechaFormatMillis("yyyy-MM-dd 00:00:00",init_date));
+        long day_end = fechaAMillis(getFechaFormatMillis("yyyy-MM-dd 00:00:00",end_date));
+        boolean turno_2 = true;
+        ArrayList<TurnoElem> t_elem = new ArrayList<>();
+        while(day >= day_end)
+        {
+            long use_day = day;
+            long use_day_2 = day;
+            if(turno_2 && turno_2_overlap.contentEquals("true"))
+            {
+                 use_day_2 = fechaAMillis(getFechaFormatMillis("yyyy-MM-dd 00:00:00",
+                        day + 90000000)); // Aumentar 1 dia, 25 horas debido a cambios de hora
+            }
+            if(!turno_2)
+            {
+                String tur_date_init = getFechaFormatMillis("yyy-MM-dd",use_day) + " " + turno_1_inicio;
+                String tur_date_end = getFechaFormatMillis("yyy-MM-dd",use_day_2) + " " + turno_1_fin;
+                TurnoElem tur = new TurnoElem(tur_date_init,tur_date_end,1,
+                        fechaAMillis(tur_date_init),fechaAMillis(tur_date_end));
+                t_elem.add(tur);
+            }
+            else
+            {
+                String tur_date_init = getFechaFormatMillis("yyy-MM-dd",use_day) + " " + turno_2_inicio;
+                String tur_date_end = getFechaFormatMillis("yyy-MM-dd",use_day_2) + " " + turno_2_fin;
+                TurnoElem tur = new TurnoElem(tur_date_init,tur_date_end,2,
+                        fechaAMillis(tur_date_init),fechaAMillis(tur_date_end));
+                t_elem.add(tur);
+            }
+            if(!turno_2)
+            {
+                day = fechaAMillis(getFechaFormatMillis("yyyy-MM-dd 00:00:00",
+                        day - 7200000)); // Reducir 1 dia, 2 horas debido a cambios de hora
+            }
+            turno_2 = !turno_2;
+        }
+        return t_elem;
+    }
+
+    public static boolean dateOnTurno(String date,TurnoElem turno)
+    {
+        long l_date = fechaAMillis(date);
+        return l_date >= turno.millis_init && l_date <= turno.millis_end;
     }
 }

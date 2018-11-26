@@ -12,6 +12,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -30,17 +31,21 @@ import java.util.ArrayList;
 
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.R;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.API;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioHistoryRonda;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.AdapterFormularioListHistorico;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Cons;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.DBHelper;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.SyncService;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.ThreadSharedContent;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.lib.Util;
 import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.Formulario;
+import vesat.bsa.registromaquinariagc.bsaregistromaquinaria.obj.RondaElem;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     protected static MainActivity self = null;
+    protected static String last_msg = null;
 
     private String device_id;
     private String device_register_id;
@@ -61,6 +66,9 @@ public class MainActivity extends AppCompatActivity
 
     protected AdapterFormularioListHistorico adapterFormularioList = null;
     private ArrayList<Formulario> arrFormulario = new ArrayList<>();
+
+    protected AdapterFormularioHistoryRonda adapterHistoryRonda = null;
+    private ArrayList<RondaElem> arrRondas = new ArrayList<>();
 
     public static boolean getStatusOnline()
     {
@@ -216,7 +224,7 @@ public class MainActivity extends AppCompatActivity
         {
             ((Button) findViewById(R.id.btnNewRonda)).setText(("Continuar Ronda"));
         }
-        loadFormularios();
+        loadFormulariosAndTurnos();
     }
 
     protected void onPause()
@@ -408,6 +416,7 @@ public class MainActivity extends AppCompatActivity
 
     public static void SyncMessage(final String msg)
     {
+        last_msg = msg;
         try {
             if (self != null) {
                 self.runOnUiThread(new Runnable() {
@@ -429,10 +438,26 @@ public class MainActivity extends AppCompatActivity
         catch (NullPointerException ignored){}
     }
 
-    private void loadFormularios()
+    private void loadRondas()
+    {
+        if(adapterHistoryRonda == null) {
+            adapterHistoryRonda = new AdapterFormularioHistoryRonda(getApplicationContext(), arrRondas);
+            ((RecyclerView) findViewById(R.id.lastRondasListView)).setNestedScrollingEnabled(false);
+            ((RecyclerView) findViewById(R.id.lastRondasListView)).setAdapter(adapterHistoryRonda);
+            ((RecyclerView) findViewById(R.id.lastRondasListView)).setLayoutManager(
+                    new LinearLayoutManager(this));
+        }
+        DBHelper db = new DBHelper(this);
+        arrRondas.clear();
+        arrRondas.addAll(db.getLast5Rondas(this));
+        db.close();
+        adapterHistoryRonda.notifyDataSetChanged();
+    }
+
+    private void loadFormulariosAndTurnos()
     {
         findViewById(R.id.mainFormPreload).setVisibility(View.VISIBLE);
-        findViewById(R.id.mainFormList).setVisibility(View.GONE);
+        findViewById(R.id.mainFormDataLayout).setVisibility(View.GONE);
         Thread net = new Thread(new Runnable()
         {
             @Override
@@ -446,9 +471,9 @@ public class MainActivity extends AppCompatActivity
                     if(ans_raw != null && ans_raw.length() > 0) {
                         JSONObject ans = new JSONObject(ans_raw);
                         String status = Util.getJSONStringOrNull(ans, "status");
-                        device_register_id = Util.getJSONStringOrNull(ans, "device_reg_id");
                         if (status != null && status.contentEquals("ok") && ans.has("formularios"))
                         {
+                            Util.saveToSP(getApplicationContext(),ans_raw,Cons.QueryCache_FormList);
                             JSONArray jformularios = ans.getJSONArray("formularios");
                             for(int x = 0;x < jformularios.length();x++)
                             {
@@ -456,6 +481,94 @@ public class MainActivity extends AppCompatActivity
                                 Formulario f = new Formulario();
                                 f.loadFromJSON(jform);
                                 arrFormulario.add(f);
+                            }
+                            if(ans.has("turno_vars"))
+                            {
+                                String turno_1_i_h = null;
+                                String turno_1_i_m = null;
+                                String turno_1_f_h = null;
+                                String turno_1_f_m = null;
+                                String turno_2_i_h = null;
+                                String turno_2_i_m = null;
+                                String turno_2_f_h = null;
+                                String turno_2_f_m = null;
+                                String turno_2_day_overlap = null;
+                                try {
+                                    JSONArray t_vars = ans.getJSONArray("turno_vars");
+                                    for (int x = 0; x < t_vars.length(); x++) {
+                                        if (t_vars.getJSONObject(x).has("id") &&
+                                                t_vars.getJSONObject(x).has("valor")) {
+                                            String id = t_vars.getJSONObject(x).getString("id");
+                                            String valor = t_vars.getJSONObject(x).getString("valor");
+                                            if (id.contentEquals("turno_1_i_h")) {
+                                                turno_1_i_h = valor;
+                                            } else if (id.contentEquals("turno_1_i_m")) {
+                                                turno_1_i_m = valor;
+                                            } else if (id.contentEquals("turno_1_f_h")) {
+                                                turno_1_f_h = valor;
+                                            } else if (id.contentEquals("turno_1_f_m")) {
+                                                turno_1_f_m = valor;
+                                            } else if (id.contentEquals("turno_2_i_h")) {
+                                                turno_2_i_h = valor;
+                                            } else if (id.contentEquals("turno_2_i_m")) {
+                                                turno_2_i_m = valor;
+                                            } else if (id.contentEquals("turno_2_f_h")) {
+                                                turno_2_f_h = valor;
+                                            } else if (id.contentEquals("turno_2_f_m")) {
+                                                turno_2_f_m = valor;
+                                            } else if (id.contentEquals("turno_2_day_overlap")) {
+                                                turno_2_day_overlap = valor;
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (JSONException ignored){}
+                                if(turno_1_i_h == null){turno_1_i_h = "8";}
+                                if(turno_1_i_m == null){turno_1_i_m = "0";}
+                                if(turno_1_f_h == null){turno_1_f_h = "19";}
+                                if(turno_1_f_m == null){turno_1_f_m = "59";}
+                                if(turno_2_i_h == null){turno_2_i_h = "20";}
+                                if(turno_2_i_m == null){turno_2_i_m = "0";}
+                                if(turno_2_f_h == null){turno_2_f_h = "7";}
+                                if(turno_2_f_m == null){turno_2_f_m = "59";}
+                                if(turno_2_day_overlap == null){turno_2_day_overlap = "true";}
+                                try {
+                                    Util.saveToSP(getApplicationContext(),
+                                            Util.leftZeros(Integer.parseInt(turno_1_i_h), 2) + ":" +
+                                            Util.leftZeros(Integer.parseInt(turno_1_i_m), 2) + ":00",
+                                            Cons.Turno1_Inicio);
+                                    Util.saveToSP(getApplicationContext(),
+                                            Util.leftZeros(Integer.parseInt(turno_1_f_h), 2) + ":" +
+                                            Util.leftZeros(Integer.parseInt(turno_1_f_m), 2) + ":59",
+                                            Cons.Turno1_Fin);
+                                    Util.saveToSP(getApplicationContext(),
+                                            Util.leftZeros(Integer.parseInt(turno_2_i_h), 2) + ":" +
+                                            Util.leftZeros(Integer.parseInt(turno_2_i_m), 2) + ":00",
+                                            Cons.Turno2_Inicio);
+                                    Util.saveToSP(getApplicationContext(),
+                                            Util.leftZeros(Integer.parseInt(turno_2_f_h), 2) + ":" +
+                                            Util.leftZeros(Integer.parseInt(turno_2_f_m), 2) + ":59",
+                                            Cons.Turno2_Fin);
+                                    Util.saveToSP(getApplicationContext(),turno_2_day_overlap,Cons.Turno2_Overlap);
+                                }
+                                catch (NumberFormatException ignored){}
+                            }
+                        }
+                    }
+                    else
+                    {
+                        String ans_cache = (String) Util.loadFromSP(getApplicationContext(),String.class,Cons.QueryCache_FormList);
+                        if(ans_cache != null && ans_cache.length() > 0) {
+                            JSONObject ans = new JSONObject(ans_cache);
+                            String status = Util.getJSONStringOrNull(ans, "status");
+                            if (status != null && status.contentEquals("ok") && ans.has("formularios")) {
+                                JSONArray jformularios = ans.getJSONArray("formularios");
+                                for (int x = 0; x < jformularios.length(); x++) {
+                                    JSONObject jform = jformularios.getJSONObject(x);
+                                    Formulario f = new Formulario();
+                                    f.loadFromJSON(jform);
+                                    arrFormulario.add(f);
+                                }
                             }
                         }
                     }
@@ -468,7 +581,7 @@ public class MainActivity extends AppCompatActivity
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setNestedScrollingEnabled(false);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setAdapter(adapterFormularioList);
                                     ((RecyclerView) findViewById(R.id.mainFormListView)).setLayoutManager(
-                                            new LinearLayoutManager(getApplicationContext()));
+                                            new GridLayoutManager(self,2));
                                 }
                                 adapterFormularioList.notifyDataSetChanged();
                             }
@@ -483,7 +596,8 @@ public class MainActivity extends AppCompatActivity
                     public void run() {
                         try {
                             findViewById(R.id.mainFormPreload).setVisibility(View.GONE);
-                            findViewById(R.id.mainFormList).setVisibility(View.VISIBLE);
+                            findViewById(R.id.mainFormDataLayout).setVisibility(View.VISIBLE);
+                            loadRondas();
                         }
                         catch (NullPointerException e){e.printStackTrace();}
                     }
@@ -499,12 +613,14 @@ public class MainActivity extends AppCompatActivity
             case R.id.btnNewRonda:
             {
                 Intent i = new Intent(this,RondaSelectFormularioActivity.class);
+                i.putExtra("last_msg",last_msg);
                 startActivity(i);
             }
             break;
             case R.id.btnNewRegistroAislado:
             {
                 Intent i = new Intent(this, IngresoAisladoSelectFormularioActivity.class);
+                i.putExtra("last_msg",last_msg);
                 startActivity(i);
             }
             break;

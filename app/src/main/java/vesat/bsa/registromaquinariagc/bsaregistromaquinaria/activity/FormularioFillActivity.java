@@ -123,7 +123,7 @@ public class FormularioFillActivity extends AppCompatActivity {
     public void onClick(View view) {
         switch (view.getId())
         {
-            case R.id.btnAlerta:
+            case R.id.btnAlerta: case R.id.txtbtnAlerta:
             {
                 CharSequence[] options_cs = {"No Enviar Alerta",
                         "Nivel Emergencia Bajo","Nivel Emergencia Medio","Nivel Emergencia Alto"};
@@ -133,6 +133,26 @@ public class FormularioFillActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         nivelEnvioAlerta = which;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                switch (nivelEnvioAlerta)
+                                {
+                                    case 1: ((ImageView) findViewById(R.id.btnAlerta)).
+                                            setImageDrawable(getResources().getDrawable(R.drawable.amarillo));
+                                    break;
+                                    case 2: ((ImageView) findViewById(R.id.btnAlerta)).
+                                            setImageDrawable(getResources().getDrawable(R.drawable.naranjo));
+                                    break;
+                                    case 3: ((ImageView) findViewById(R.id.btnAlerta)).
+                                            setImageDrawable(getResources().getDrawable(R.drawable.rojo));
+                                    break;
+                                    default: ((ImageView) findViewById(R.id.btnAlerta)).
+                                        setImageDrawable(getResources().getDrawable(R.drawable.gris));
+                                    break;
+                                }
+                            }
+                        });
                     }
                 });
                 builder.show();
