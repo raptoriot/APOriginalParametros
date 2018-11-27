@@ -8,7 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ public class AdapterFormularioListIngresoAislado extends RecyclerView.Adapter<Ad
     public void onBindViewHolder(@NonNull CustomViewHolder customViewHolder, int i) {
         final Formulario formulario = arrFormularios.get(i);
         customViewHolder.formName.setText(formulario.nombre);
-        customViewHolder.formButton.setOnClickListener(new View.OnClickListener() {
+        customViewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Util.saveToSP(context,formulario,Cons.Current_Form);
@@ -57,13 +57,13 @@ public class AdapterFormularioListIngresoAislado extends RecyclerView.Adapter<Ad
     }
 
     class CustomViewHolder extends RecyclerView.ViewHolder {
+        LinearLayout parentLayout;
         TextView formName;
-        ImageView formButton;
 
         CustomViewHolder(View view) {
             super(view);
+            this.parentLayout = view.findViewById(R.id.parentLayout);
             this.formName = view.findViewById(R.id.formName);
-            this.formButton = view.findViewById(R.id.formButton);
         }
     }
 }

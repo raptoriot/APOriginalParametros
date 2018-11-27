@@ -50,11 +50,11 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
             if (db.isFormSubmittedForRonda(currentRondaID
                     , Long.parseLong(formulario.id)))
             {
-                customViewHolder.llayoutback.setBackgroundColor(Color.parseColor("#4fff51"));
+                customViewHolder.parentLayout.setBackgroundColor(Color.parseColor("#4fff51"));
             }
             else
             {
-                customViewHolder.llayoutback.setBackgroundColor(Color.parseColor("#ff7777"));
+                customViewHolder.parentLayout.setBackgroundColor(Color.parseColor("#ff7777"));
             }
             switch(db.getFormNivelAlertaForRonda(currentRondaID,Long.parseLong(formulario.id)))
             {
@@ -74,7 +74,7 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
         }
         catch (NumberFormatException ignored){}
         db.close();
-        customViewHolder.formButton.setOnClickListener(new View.OnClickListener() {
+        customViewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DBHelper db = new DBHelper(context);
@@ -107,16 +107,14 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
 
     class CustomViewHolder extends RecyclerView.ViewHolder {
         TextView formName;
-        ImageView formButton;
         ImageView formAlertStatus;
-        LinearLayout llayoutback;
+        LinearLayout parentLayout;
 
         CustomViewHolder(View view) {
             super(view);
             this.formName = view.findViewById(R.id.formName);
-            this.formButton = view.findViewById(R.id.formButton);
             this.formAlertStatus = view.findViewById(R.id.formAlertStatus);
-            this.llayoutback = view.findViewById(R.id.llayoutback);
+            this.parentLayout = view.findViewById(R.id.parentLayout);
         }
     }
 }

@@ -451,6 +451,14 @@ public class MainActivity extends AppCompatActivity
         arrRondas.clear();
         arrRondas.addAll(db.getLast5Rondas(this));
         db.close();
+        if(arrRondas.size() > 0)
+        {
+            findViewById(R.id.headerRondas).setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            findViewById(R.id.headerRondas).setVisibility(View.GONE);
+        }
         adapterHistoryRonda.notifyDataSetChanged();
     }
 
