@@ -61,7 +61,7 @@ public class SyncService extends Service {
                                                         json.put("synced", synced_status);
                                                         boolean pass = false;
                                                         String ans_raw = API.readWs(API.SYNC_RONDAS_DATA_FROM_DEVICE, user_id, user_pass,
-                                                                device_register_id, device_id, json.toString());
+                                                                device_register_id, device_id, "&extra=" + json.toString());
                                                         if (ans_raw != null && ans_raw.length() > 0) {
                                                             JSONObject ans = new JSONObject(ans_raw);
                                                             String status = Util.getJSONStringOrNull(ans, "status");
@@ -106,7 +106,7 @@ public class SyncService extends Service {
                                                         boolean pass = false;
                                                         if (rondas_uuid == null || db.rondaIsSynced(rondas_uuid)) {
                                                             String ans_raw = API.readWs(API.SYNC_REGISTROS_DATA_FROM_DEVICE, user_id, user_pass,
-                                                                    device_register_id, device_id, json.toString());
+                                                                    device_register_id, device_id, "&extra=" + json.toString());
                                                             if (ans_raw != null && ans_raw.length() > 0) {
                                                                 JSONObject ans = new JSONObject(ans_raw);
                                                                 String status = Util.getJSONStringOrNull(ans, "status");
