@@ -2,6 +2,7 @@ package vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StatFs;
@@ -438,6 +439,31 @@ public class MainActivity extends AppCompatActivity
         catch (NullPointerException ignored){}
     }
 
+    public static void SyncMessageColor(final boolean status)
+    {
+        try {
+            if (self != null) {
+                self.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if(status) {
+                                self.findViewById(R.id.sync_layout).
+                                        setBackgroundColor(Color.rgb(0xff,0x00,0x00));
+                            }
+                            else {
+                                self.findViewById(R.id.sync_layout).
+                                        setBackgroundColor(Color.rgb(0xff,0xd9,0x99));
+                            }
+                        }
+                        catch (NullPointerException ignored){}
+                    }
+                });
+            }
+        }
+        catch (NullPointerException ignored){}
+    }
+
     private void loadRondas()
     {
         if(adapterHistoryRonda == null) {
@@ -447,19 +473,21 @@ public class MainActivity extends AppCompatActivity
             ((RecyclerView) findViewById(R.id.lastRondasListView)).setLayoutManager(
                     new LinearLayoutManager(this));
         }
-        DBHelper db = new DBHelper(this);
-        arrRondas.clear();
-        arrRondas.addAll(db.getLast5Rondas(this));
-        db.close();
-        if(arrRondas.size() > 0)
-        {
-            findViewById(R.id.headerRondas).setVisibility(View.VISIBLE);
+        try {
+            DBHelper db = new DBHelper(this);
+            arrRondas.clear();
+            arrRondas.addAll(db.getLast5Rondas(this));
+            db.close();
+            if (arrRondas.size() > 0) {
+                findViewById(R.id.headerRondas).setVisibility(View.VISIBLE);
+            } else {
+                findViewById(R.id.headerRondas).setVisibility(View.GONE);
+            }
+            adapterHistoryRonda.notifyDataSetChanged();
         }
-        else
-        {
-            findViewById(R.id.headerRondas).setVisibility(View.GONE);
+        catch (Exception e) {
+            Util.serverLogException(e,getApplicationContext());
         }
-        adapterHistoryRonda.notifyDataSetChanged();
     }
 
     private void loadFormulariosAndTurnos()
@@ -623,6 +651,7 @@ public class MainActivity extends AppCompatActivity
                 Intent i = new Intent(this,RondaSelectFormularioActivity.class);
                 i.putExtra("last_msg",last_msg);
                 startActivity(i);
+
             }
             break;
             case R.id.btnNewRegistroAislado:

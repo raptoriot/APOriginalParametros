@@ -29,6 +29,7 @@ public class API {
     public final static int GET_FORMULARIOS_LIST = 20;
     public final static int SYNC_REGISTROS_DATA_FROM_DEVICE = 30;
     public final static int SYNC_RONDAS_DATA_FROM_DEVICE = 31;
+    public final static int LOG_EXCEPTION = 100;
 
     private final static String auth_username = "h9gau89ioZ12398Zaoe1278oe@@aoeaz!";
     private final static String auth_password = "AOZEOERK01@12euced((oeu09u8ueooaZ";
@@ -50,7 +51,7 @@ public class API {
             urlParameters += "&auth="+auth;
             urlParameters += "&device_reg_id="+dev_reg_id;
             urlParameters += "&device_id="+dev_id;
-            urlParameters += "&extra=" + extra;
+            urlParameters += extra;
 
 
             //if(ws_location.startsWith("https")) {

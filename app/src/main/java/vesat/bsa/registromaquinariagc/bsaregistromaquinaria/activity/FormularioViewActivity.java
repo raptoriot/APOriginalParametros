@@ -91,73 +91,68 @@ public class FormularioViewActivity extends AppCompatActivity {
 
     private void loadFormularioData()
     {
-        DBHelper db = new DBHelper(this);
-        Cursor cur = db.getRegistroById(current_form_elem);
-        if(cur.moveToNext())
-        {
-            int nivel_alerta = cur.getInt(cur.getColumnIndex("alerta_nivel"));
-            switch (nivel_alerta)
-            {
-                case 1: ((ImageView) findViewById(R.id.btnAlerta)).
-                        setImageDrawable(getResources().getDrawable(R.drawable.amarillo));
-                    break;
-                case 2: ((ImageView) findViewById(R.id.btnAlerta)).
-                        setImageDrawable(getResources().getDrawable(R.drawable.naranjo));
-                    break;
-                case 3: ((ImageView) findViewById(R.id.btnAlerta)).
-                        setImageDrawable(getResources().getDrawable(R.drawable.rojo));
-                    break;
-                default: ((ImageView) findViewById(R.id.btnAlerta)).
-                        setImageDrawable(getResources().getDrawable(R.drawable.gris));
-                    break;
-            }
-            ((EditText) findViewById(R.id.currentHoraRegistro)).setText(cur.getString(cur.getColumnIndex("fecha")));
-            try {
-                JSONArray datos = new JSONArray(
-                        new String(Base64.decode(cur.getString(cur.getColumnIndex("datos")),
-                                Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)));
-                for(FormSection section : sections) {
-                    for(FormField field : section.fields)
-                    {
-                        for(int x = 0;x < datos.length();x++)
-                        {
-                            if(datos.getJSONObject(x).has("id") && datos.getJSONObject(x).getString("id").
-                                    trim().equalsIgnoreCase(field.id.trim()))
-                            {
-                                if(datos.getJSONObject(x).has("value")
-                                    && datos.getJSONObject(x).has("type")) {
-                                    String value = datos.getJSONObject(x).getString("value");
-                                    String type = datos.getJSONObject(x).getString("type");
-                                    if(type.equalsIgnoreCase("Label") || type.equalsIgnoreCase("Image"))
-                                    {
-                                        // No Hacer Nada
+        try {
+            DBHelper db = new DBHelper(this);
+            Cursor cur = db.getRegistroById(current_form_elem);
+            if (cur.moveToNext()) {
+                int nivel_alerta = cur.getInt(cur.getColumnIndex("alerta_nivel"));
+                switch (nivel_alerta) {
+                    case 1:
+                        ((ImageView) findViewById(R.id.btnAlerta)).
+                                setImageDrawable(getResources().getDrawable(R.drawable.amarillo));
+                        break;
+                    case 2:
+                        ((ImageView) findViewById(R.id.btnAlerta)).
+                                setImageDrawable(getResources().getDrawable(R.drawable.naranjo));
+                        break;
+                    case 3:
+                        ((ImageView) findViewById(R.id.btnAlerta)).
+                                setImageDrawable(getResources().getDrawable(R.drawable.rojo));
+                        break;
+                    default:
+                        ((ImageView) findViewById(R.id.btnAlerta)).
+                                setImageDrawable(getResources().getDrawable(R.drawable.gris));
+                        break;
+                }
+                ((EditText) findViewById(R.id.currentHoraRegistro)).setText(cur.getString(cur.getColumnIndex("fecha")));
+                try {
+                    JSONArray datos = new JSONArray(
+                            new String(Base64.decode(cur.getString(cur.getColumnIndex("datos")),
+                                    Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)));
+                    for (FormSection section : sections) {
+                        for (FormField field : section.fields) {
+                            for (int x = 0; x < datos.length(); x++) {
+                                if (datos.getJSONObject(x).has("id") && datos.getJSONObject(x).getString("id").
+                                        trim().equalsIgnoreCase(field.id.trim())) {
+                                    if (datos.getJSONObject(x).has("value")
+                                            && datos.getJSONObject(x).has("type")) {
+                                        String value = datos.getJSONObject(x).getString("value");
+                                        String type = datos.getJSONObject(x).getString("type");
+                                        if (type.equalsIgnoreCase("Label") || type.equalsIgnoreCase("Image")) {
+                                            // No Hacer Nada
+                                        } else if (type.equalsIgnoreCase("Photo") || type.equalsIgnoreCase("Signature")) {
+                                            Util.loadBase64Img(value, (ImageView) field.view_value, this);
+                                        } else if (type.equalsIgnoreCase("Boolean")) {
+                                            ((CheckBox) field.view_value).setChecked(value.equalsIgnoreCase("1"));
+                                        } else if (type.equalsIgnoreCase("Combo")) {
+                                            ((TextView) field.view_value).setText(value);
+                                        } else {
+                                            ((EditText) field.view_value).setText(value);
+                                        }
                                     }
-                                    else if(type.equalsIgnoreCase("Photo") || type.equalsIgnoreCase("Signature"))
-                                    {
-                                        Util.loadBase64Img(value,(ImageView) field.view_value,this);
-                                    }
-                                    else if(type.equalsIgnoreCase("Boolean"))
-                                    {
-                                        ((CheckBox) field.view_value).setChecked(value.equalsIgnoreCase("1"));
-                                    }
-                                    else if(type.equalsIgnoreCase("Combo"))
-                                    {
-                                        ((TextView) field.view_value).setText(value);
-                                    }
-                                    else
-                                    {
-                                        ((EditText) field.view_value).setText(value);
-                                    }
+                                    break;
                                 }
-                                break;
                             }
                         }
                     }
+                } catch (JSONException ignored) {
                 }
             }
-            catch (JSONException ignored){}
+            cur.close();
+            db.close();
         }
-        cur.close();
-        db.close();
+        catch (Exception e) {
+            Util.serverLogException(e,getApplicationContext());
+        }
     }
 }

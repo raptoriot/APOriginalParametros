@@ -2,6 +2,7 @@ package vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -125,74 +126,89 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
                     if(current_ronda_id != null) {
-                        final DBHelper db = new DBHelper(m_self);
-                        if (db.isRondaComplete(current_ronda_id, arrFormulario)) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(m_self);
-                            builder.setTitle("Ronda");
-                            builder.setPositiveButton("Cerrar Ronda", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    db.markRondaAsCerrada(current_ronda_id, null);
-                                    Util.saveToSP(m_self,null,Cons.Current_Ronda_ID);
-                                    dialog.dismiss();
-                                    m_self.finish();
-                                }
-                            });
-                            builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel();
-                                }
-                            });
-                            builder.show();
-                        } else {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(m_self);
-                            builder.setTitle("¡RONDA INCOMPLETA!");
-                            @SuppressLint("InflateParams") View viewInflated = LayoutInflater.from(m_self
-                            ).inflate(R.layout.dialog_text, null, false);
-                            final EditText input = viewInflated.findViewById(R.id.input);
-                            input.setFilters(new InputFilter[]{
-                                    new InputFilter() {
-                                        public CharSequence filter(CharSequence src, int start,
-                                                                   int end, Spanned dst, int dstart, int dend) {
-                                            if (src.equals("")) {
-                                                return src;
-                                            }
-                                            if (src.toString().matches
-                                                    ("[0-9A-Za-z*+?$.|" +
-                                                            "()\\- =¿!#@%&,;<>_¬¡:ñÑçÇáóéúíÁÓÉÚÍ]+")) {
-                                                return src;
-                                            }
-                                            return "";
+                        try {
+                            final DBHelper db = new DBHelper(m_self);
+                            if (db.isRondaComplete(current_ronda_id, arrFormulario)) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(m_self);
+                                builder.setTitle("Ronda");
+                                builder.setPositiveButton("Cerrar Ronda", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        try {
+                                            db.markRondaAsCerrada(current_ronda_id, null);
+                                            Util.saveToSP(m_self, null, Cons.Current_Ronda_ID);
+                                            dialog.dismiss();
+                                            m_self.finish();
+                                        }
+                                        catch (Exception e) {
+                                            Util.serverLogException(e,getApplicationContext());
                                         }
                                     }
-                            });
-                            builder.setView(viewInflated);
-                            builder.setPositiveButton("Cerrar Ronda Incompleta", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    String justificacion = input.getText().toString();
-                                    if (justificacion.length() > 0) {
-                                        db.markRondaAsCerrada(current_ronda_id, justificacion);
-                                        Util.saveToSP(m_self,null,Cons.Current_Ronda_ID);
-                                        dialog.dismiss();
-                                        m_self.finish();
-                                    } else {
-                                        Toast.makeText(m_self, "Debe ingresar justificación",
-                                                Toast.LENGTH_SHORT).show();
-                                        dialog.dismiss();
+                                });
+                                builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
                                     }
-                                }
-                            });
-                            builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel();
-                                }
-                            });
-                            builder.show();
+                                });
+                                builder.show();
+                            } else {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(m_self);
+                                builder.setTitle("¡RONDA INCOMPLETA!");
+                                @SuppressLint("InflateParams") View viewInflated = LayoutInflater.from(m_self
+                                ).inflate(R.layout.dialog_text, null, false);
+                                final EditText input = viewInflated.findViewById(R.id.input);
+                                input.setFilters(new InputFilter[]{
+                                        new InputFilter() {
+                                            public CharSequence filter(CharSequence src, int start,
+                                                                       int end, Spanned dst, int dstart, int dend) {
+                                                if (src.equals("")) {
+                                                    return src;
+                                                }
+                                                if (src.toString().matches
+                                                        ("[0-9A-Za-z*+?$.|" +
+                                                                "()\\- =¿!#@%&,;<>_¬¡:ñÑçÇáóéúíÁÓÉÚÍ]+")) {
+                                                    return src;
+                                                }
+                                                return "";
+                                            }
+                                        }
+                                });
+                                builder.setView(viewInflated);
+                                builder.setPositiveButton("Cerrar Ronda Incompleta", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        try {
+                                            String justificacion = input.getText().toString();
+                                            if (justificacion.length() > 0) {
+                                                db.markRondaAsCerrada(current_ronda_id, justificacion);
+                                                Util.saveToSP(m_self, null, Cons.Current_Ronda_ID);
+                                                dialog.dismiss();
+                                                m_self.finish();
+                                            } else {
+                                                Toast.makeText(m_self, "Debe ingresar justificación",
+                                                        Toast.LENGTH_SHORT).show();
+                                                dialog.dismiss();
+                                            }
+                                        }
+                                        catch (Exception e) {
+                                            Util.serverLogException(e,getApplicationContext());
+                                        }
+                                    }
+                                });
+                                builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+                                builder.show();
+                            }
+                            db.close();
                         }
-                        db.close();
+                        catch (Exception e) {
+                            Util.serverLogException(e,getApplicationContext());
+                        }
                     }
                     return true;
                 }
@@ -214,7 +230,9 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
                 db.close();
             }
         }
-        catch (NumberFormatException ignored){}
+        catch (Exception e) {
+            Util.serverLogException(e,getApplicationContext());
+        }
         String r_fecha = (String) Util.loadFromSP(this,String.class,Cons.Current_Ronda_Fecha);
         if(r_fecha != null)
         {
@@ -316,6 +334,31 @@ public class RondaSelectFormularioActivity extends AppCompatActivity {
                             } else {
                                 ((TextView) self.findViewById(R.id.sync_msg)).setText(msg);
                                 self.findViewById(R.id.sync_layout).setVisibility(View.VISIBLE);
+                            }
+                        }
+                        catch (NullPointerException ignored){}
+                    }
+                });
+            }
+        }
+        catch (NullPointerException ignored){}
+    }
+
+    public static void SyncMessageColor(final boolean status)
+    {
+        try {
+            if (self != null) {
+                self.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if(status) {
+                                self.findViewById(R.id.sync_layout).
+                                        setBackgroundColor(Color.rgb(0xff,0x00,0x00));
+                            }
+                            else {
+                                self.findViewById(R.id.sync_layout).
+                                        setBackgroundColor(Color.rgb(0xff,0xd9,0x99));
                             }
                         }
                         catch (NullPointerException ignored){}

@@ -23,7 +23,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -433,5 +435,25 @@ public class Util {
     {
         long l_date = fechaAMillis(date);
         return l_date >= turno.millis_init && l_date <= turno.millis_end;
+    }
+
+    public static void serverLogException(final Exception e,final Context c)
+    {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                String exceptiondata = Base64.encodeToString(sw.toString().getBytes(),Base64.DEFAULT | Base64.URL_SAFE | Base64.NO_WRAP);
+                String device_id = (String) Util.loadFromSP(c,String.class,Cons.Device_ID);
+                String device_register_id = (String) Util.loadFromSP(c,String.class,Cons.Device_Register_ID);
+                String user_id = (String) Util.loadFromSP(c,String.class,Cons.User_ID);
+                String user_pass = (String) Util.loadFromSP(c,String.class,Cons.User_Pass);
+                API.readWs(API.LOG_EXCEPTION,user_id,user_pass,device_register_id,device_id,
+                        "&exceptiondata=" + exceptiondata);
+            }
+        });
+        t.start();
     }
 }

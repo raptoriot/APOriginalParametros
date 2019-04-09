@@ -384,13 +384,19 @@ public class FormularioFillActivity extends AppCompatActivity {
                             }
                         }
                         if (requireds) {
-                            DBHelper db = new DBHelper(getApplicationContext());
-                            if (db.addNewRegistro(formularios, usuarios, fecha,
-                                    Base64.encodeToString(datos.toString().getBytes(), Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)
-                                    , alerta_nivel, latitud, longitud, current_ronda_id) > 0) {
-                                pass = true;
+                            try {
+                                DBHelper db = new DBHelper(getApplicationContext());
+                                if (db.addNewRegistro(formularios, usuarios, fecha,
+                                        Base64.encodeToString(datos.toString().getBytes(), Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING)
+                                        , alerta_nivel, latitud, longitud, current_ronda_id) > 0) {
+                                    pass = true;
+                                }
+                                db.close();
                             }
-                            db.close();
+                            catch (Exception e)
+                            {
+                                Util.serverLogException(e,getApplicationContext());
+                            }
                         } else {
                             pass = true;
                         }

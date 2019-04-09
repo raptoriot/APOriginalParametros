@@ -45,8 +45,8 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
         final Formulario formulario = arrFormularios.get(i);
         customViewHolder.formName.setText(formulario.nombre);
         customViewHolder.formAlertStatus.setVisibility(View.VISIBLE);
-        DBHelper db = new DBHelper(context);
         try {
+            DBHelper db = new DBHelper(context);
             if (db.isFormSubmittedForRonda(currentRondaID
                     , Long.parseLong(formulario.id)))
             {
@@ -71,14 +71,16 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
                     customViewHolder.formAlertStatus.setImageDrawable(context.getResources().getDrawable(R.drawable.gris));
                 break;
             }
+            db.close();
         }
-        catch (NumberFormatException ignored){}
-        db.close();
+        catch (Exception e) {
+            Util.serverLogException(e,context);
+        }
         customViewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DBHelper db = new DBHelper(context);
                 try {
+                    DBHelper db = new DBHelper(context);
                     if(!db.isFormSubmittedForRonda(currentRondaID
                             , Long.parseLong(formulario.id))) {
                         db.close();
@@ -92,9 +94,8 @@ public class AdapterFormularioListRonda extends RecyclerView.Adapter<AdapterForm
                         db.close();
                     }
                 }
-                catch (NumberFormatException ignored)
-                {
-                    db.close();
+                catch (Exception e) {
+                    Util.serverLogException(e,context);
                 }
             }
         });

@@ -1,5 +1,6 @@
 package vesat.bsa.registromaquinariagc.bsaregistromaquinaria.activity;
 
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -197,6 +198,31 @@ public class IngresoAisladoSelectFormularioActivity extends AppCompatActivity {
                             } else {
                                 ((TextView) self.findViewById(R.id.sync_msg)).setText(msg);
                                 self.findViewById(R.id.sync_layout).setVisibility(View.VISIBLE);
+                            }
+                        }
+                        catch (NullPointerException ignored){}
+                    }
+                });
+            }
+        }
+        catch (NullPointerException ignored){}
+    }
+
+    public static void SyncMessageColor(final boolean status)
+    {
+        try {
+            if (self != null) {
+                self.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if(status) {
+                                self.findViewById(R.id.sync_layout).
+                                        setBackgroundColor(Color.rgb(0xff,0x00,0x00));
+                            }
+                            else {
+                                self.findViewById(R.id.sync_layout).
+                                        setBackgroundColor(Color.rgb(0xff,0xd9,0x99));
                             }
                         }
                         catch (NullPointerException ignored){}

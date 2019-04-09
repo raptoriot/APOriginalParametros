@@ -16,7 +16,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private static final int Database_Version = 2;
 
-    public DBHelper(Context context) {
+    public DBHelper(Context context)  throws Exception {
         super(context, Util.getCurrentDatabaseLocationSafe(context) + Cons.Database_Name, null,
                 Database_Version);
     }
@@ -52,68 +52,62 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public long addNewRegistro(int formularios,int usuarios,String fecha,String datos,int alerta_nivel,
-                            Double latitud, Double longitud, String rondas_uuid)
+                            Double latitud, Double longitud, String rondas_uuid)  throws Exception
     {
-        try {
-            ContentValues values = new ContentValues();
-            // Pares clave-valor
-            values.put("formularios", formularios);
-            values.put("usuarios", usuarios);
-            values.put("fecha", fecha);
-            values.put("datos", datos);
-            values.put("alerta_nivel", alerta_nivel);
-            if(latitud != null) {
-                values.put("latitud", latitud);
-            } else {
-                values.putNull("latitud");
-            }
-            if(longitud != null) {
-                values.put("longitud", longitud);
-            } else {
-                values.putNull("longitud");
-            }
-            if(rondas_uuid != null) {
-                values.put("rondas_uuid", rondas_uuid);
-                values.put("enable_sync", "1"); // Siempre usar 1, en una version temprana se uso 0 para esperar
-                                                // a que se completara la ronda
-            } else {
-                values.putNull("rondas_uuid");
-                values.put("enable_sync", "1"); // Siempre usar 1, en una version temprana se uso 0 para esperar
-                                                // a que se completara la ronda
-            }
-            values.put("synced","0");
-            SQLiteDatabase db = getWritableDatabase();
-            return db.insert("registros", null, values);
+        ContentValues values = new ContentValues();
+        // Pares clave-valor
+        values.put("formularios", formularios);
+        values.put("usuarios", usuarios);
+        values.put("fecha", fecha);
+        values.put("datos", datos);
+        values.put("alerta_nivel", alerta_nivel);
+        if(latitud != null) {
+            values.put("latitud", latitud);
+        } else {
+            values.putNull("latitud");
         }
-        catch(NumberFormatException e){return -1;}
+        if(longitud != null) {
+            values.put("longitud", longitud);
+        } else {
+            values.putNull("longitud");
+        }
+        if(rondas_uuid != null) {
+            values.put("rondas_uuid", rondas_uuid);
+            values.put("enable_sync", "1"); // Siempre usar 1, en una version temprana se uso 0 para esperar
+                                            // a que se completara la ronda
+        } else {
+            values.putNull("rondas_uuid");
+            values.put("enable_sync", "1"); // Siempre usar 1, en una version temprana se uso 0 para esperar
+                                            // a que se completara la ronda
+        }
+        values.put("synced","0");
+        SQLiteDatabase db = getWritableDatabase();
+        return db.insert("registros", null, values);
     }
 
-    public String addNewRonda(int usuarios,String fecha, String dev_reg_id)
+    public String addNewRonda(int usuarios,String fecha, String dev_reg_id) throws Exception
     {
-        try {
-            String uuid = dev_reg_id + "-" + System.currentTimeMillis();
-            ContentValues values = new ContentValues();
-            // Pares clave-valor
-            values.put("usuarios", usuarios);
-            values.put("fecha", fecha);
-            values.putNull("comentario");
-            values.put("cerrada","0");
-            values.put("synced","0");
-            values.put("uuid",uuid);
-            SQLiteDatabase db = getWritableDatabase();
-            if(db.insert("rondas", null, values) > 0)
-            {
-                return  uuid;
-            }
-            else
-            {
-                return null;
-            }
+        String uuid = dev_reg_id + "-" + System.currentTimeMillis();
+        ContentValues values = new ContentValues();
+        // Pares clave-valor
+        values.put("usuarios", usuarios);
+        values.put("fecha", fecha);
+        values.putNull("comentario");
+        values.put("cerrada","0");
+        values.put("synced","0");
+        values.put("uuid",uuid);
+        SQLiteDatabase db = getWritableDatabase();
+        if(db.insert("rondas", null, values) > 0)
+        {
+            return  uuid;
         }
-        catch(NumberFormatException e){return null;}
+        else
+        {
+            return null;
+        }
     }
 
-    public Cursor getRegistrosSyncNext() {
+    public Cursor getRegistrosSyncNext()  throws Exception{
         String selection = "synced = '0' AND enable_sync = '1'";
         return getReadableDatabase()
                 .query(
@@ -127,13 +121,13 @@ public class DBHelper extends SQLiteOpenHelper {
                         null);
     }
 
-    public void markRegistroAsSynced(long id) {
+    public void markRegistroAsSynced(long id)  throws Exception{
         ContentValues cv = new ContentValues();
         cv.put("synced","1");
         getWritableDatabase().update("registros",cv,"_ID = ?",new String[]{""+id});
     }
 
-    public Cursor getRondasSyncNext() {
+    public Cursor getRondasSyncNext()  throws Exception{
         String selection = "(synced = '0') OR (synced = '1' AND cerrada = '1')";
         return getReadableDatabase()
                 .query(
@@ -147,7 +141,7 @@ public class DBHelper extends SQLiteOpenHelper {
                         null);
     }
 
-    public void markRondaAsCerrada(String uuid,String comentario) {
+    public void markRondaAsCerrada(String uuid,String comentario)  throws Exception{
         ContentValues cv = new ContentValues();
         cv.put("cerrada","1");
         if(comentario != null) {
@@ -156,7 +150,7 @@ public class DBHelper extends SQLiteOpenHelper {
         getWritableDatabase().update("rondas",cv,"uuid = ?",new String[]{""+uuid});
     }
 
-    public boolean rondaIsSynced(String uuid)
+    public boolean rondaIsSynced(String uuid)  throws Exception
     {
         boolean ret = false;
         Cursor cur = getReadableDatabase().query(
@@ -176,33 +170,30 @@ public class DBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
-    public void markRondaAsSynced(String uuid) {
+    public void markRondaAsSynced(String uuid)  throws Exception{
         ContentValues cv = new ContentValues();
         cv.put("synced","1");
         getWritableDatabase().update("rondas",cv,"uuid = ?",new String[]{""+uuid});
     }
 
-    public void markRondaAsUpdated(String uuid) {
+    public void markRondaAsUpdated(String uuid)  throws Exception{
         ContentValues cv = new ContentValues();
         cv.put("synced","2");
         getWritableDatabase().update("rondas",cv,"uuid = ?",new String[]{""+uuid});
     }
 
-    public boolean isRondaComplete(String rondas_uuid,ArrayList<Formulario> forms)
+    public boolean isRondaComplete(String rondas_uuid,ArrayList<Formulario> forms)  throws Exception
     {
         for(Formulario f : forms)
         {
-            try {
-                if (!isFormSubmittedForRonda(rondas_uuid, Long.parseLong(f.id))) {
-                    return false;
-                }
+            if (!isFormSubmittedForRonda(rondas_uuid, Long.parseLong(f.id))) {
+                return false;
             }
-            catch(NumberFormatException ignored){return false;}
         }
         return true;
     }
 
-    public boolean isFormSubmittedForRonda(String rondas_uuid,long form_id)
+    public boolean isFormSubmittedForRonda(String rondas_uuid,long form_id)  throws Exception
     {
         boolean ret = false;
         Cursor cur = getReadableDatabase().query(
@@ -222,7 +213,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
-    public byte getFormNivelAlertaForRonda(String rondas_uuid,long form_id)
+    public byte getFormNivelAlertaForRonda(String rondas_uuid,long form_id)  throws Exception
     {
         byte ret = 0;
         Cursor cur = getReadableDatabase().query(
@@ -247,7 +238,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return ret;
     }
 
-    public Cursor getAllRegistrosOfFormulario(int formulario_id) {
+    public Cursor getAllRegistrosOfFormulario(int formulario_id)  throws Exception {
         return getReadableDatabase()
                 .query(
                         "registros",
@@ -260,7 +251,7 @@ public class DBHelper extends SQLiteOpenHelper {
                         "100");
     }
 
-    public Cursor getRegistroById(int elem_id) {
+    public Cursor getRegistroById(int elem_id)  throws Exception {
         return getReadableDatabase()
                 .query(
                         "registros",
@@ -273,7 +264,7 @@ public class DBHelper extends SQLiteOpenHelper {
                         null);
     }
 
-    public ArrayList<RondaElem> getLast5Rondas(Context context)
+    public ArrayList<RondaElem> getLast5Rondas(Context context)  throws Exception
     {
         ArrayList<RondaElem> t_ronda = new ArrayList<>();
         Cursor cur1 = getReadableDatabase().query(
